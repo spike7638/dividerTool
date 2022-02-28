@@ -17,7 +17,11 @@ let make = () => {
   //   None
   // }, [dispatch])
 //  (<div><Controls state dispatch/><hr/><Display state dispatch/><hr /><Target state dispatch/> <hr/> <Target2 state dispatch/><hr/> <hr/></div>);
-  (<div><Controls state dispatch/><hr/><Target2 state dispatch/><hr/><Scrap state dispatch/>  <hr/></div>);
+//  (<div><Controls state dispatch/><hr/><Target2 state dispatch/><hr/><Scrap state dispatch/>  <hr/></div>);
+  (<div><Controls state dispatch/><hr/>
+  <EditorComponent state dispatch/><hr/>
+  //<Scrap state dispatch/>  <hr/>
+  </div>);
 }
 
 // let make = () => {

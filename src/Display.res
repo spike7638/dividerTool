@@ -26,7 +26,9 @@ let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
         <br />
          <span > {("Enclosed?: " ++ (state.data.includeEnclosure->string_of_bool))->React.string} </span>
         <br />
-         <span > {("Dip Fraction: " ++ (state.data.dipFraction->Js.Float.toString))->React.string} </span>
+         <span > {("Dip Percentage V: " ++ (state.data.dipPercentageV->Js.Float.toString))->React.string} </span>
+        <br />
+         <span > {("Dip Percentage H: " ++ (state.data.dipPercentageH->Js.Float.toString))->React.string} </span>
         <br />
         
       </div>

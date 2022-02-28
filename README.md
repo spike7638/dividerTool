@@ -2,6 +2,20 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## before anything else...
+
+To make everything else here work, you should run:
+
+### yarn install
+### yarn build:res
+### yarn build
+
+which (1) installs all the packages you need, and (2) compiles all the source code to get everything ready. You'll 
+get some warning during the install process, which you should ignore. The third thing creates index.bs.js, which is needed 
+when you want to use 
+### yarn start
+later.
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -18,7 +32,7 @@ You will also see any lint errors in the console.
 
 Launches the test runner in the interactive watch mode.\
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
+cd ..
 ### `yarn build`
 
 Builds the app for production to the `build` folder.\
