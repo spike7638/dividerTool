@@ -7,32 +7,22 @@ as a first step.
 Then, in a terminal
 > yarn install (took a while!)
 because "yarn start" said "react-scripts not found"
-
-This version now has 
-(a) buttons (top row) that update a global value defined in Store.res
-(b) buttons (middle row) that update another value, a sum of a locally-store value and the global value
-(this computed value isn't used anywhere except to display as a label between the buttons)
-(c) a ReProcessing program in which a square in the middle of a larger square has its size adjusted by any change in that global value controlled by the upper button-pair. 
 =========================================
-.Remove debugging output from editor
 
-When when I change velues in the form does pressing the SVGResult button cause them to reset to defaults?
+.Whenever the drawing changes, update the drawing-state [20 min]
+** .extract the drawing from the editor when the SVG button is pressed,
+** .put a printed version of it in the SVG window. [20 min]
+.Convert that extracted drawing into SVG [3 hour]
 
-+make the "getSVG" button do what it's supposed to do.
-start gluing "form" controls to editor
-====
+* Simplify initial settings for testing
+* Turn off "outer box" for initial testing
+* Perhaps turn off the stroke-list
+* Need to copy initial stroke-set to :sharing: thing at the start (or trigger a refresh there, if it's already right)
 
-Write two beginner questions: 
-1. Why no type-safety in assigning form data to Rescript variables? 
-=========================================
-The App (or something similarly high up -- the controls?) needs to maintain some state, i.e.
-  1. All the stuff that the UI can change
-  2. The current drawing (maybe ... yeah, because you could adjust the dip-factors mid-plan)
-
-
-The Editor, on creation, needs to get a bunch of info from that state to establish things like the dot spacing, etc., 
-AND needs to initialize its drawing from the locally-stored record of the drawing state. 
-
-Whenever the drawing changes, update the drawing-state.
-Make those local things like dot-spacing, etc., be part of the "state" of the reprocesssing window, so 
-that they can be accessed as needed --- can't have them be module-level data as they are now. 
+* Fix the code so that horizontal strokes use "L" instead of "U", and vice-versa
+* Clean up all code to remove leftover bits, document what's going on, etc. 
+* Vertical and Horizontal overwrite each other in SVG
+* Generate blue, thicker lines along with red, thin, lines, and green panel-labels
+* Adjust SVG display to limited 5-line height
+* Insert linebreaks in SVG!
+* Need to fix the geometry calculations for a 900 x 900 display, and an 8 x 7 grid with 0.5" spacing the underlying drawer-shape is drawn too large
