@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as Store$RescriptReactIntro from "./Store.bs.js";
 import * as Controls$RescriptReactIntro from "./Controls.bs.js";
+import * as SVGDisplay$RescriptReactIntro from "./SVGDisplay.bs.js";
 import * as EditorComponent$RescriptReactIntro from "./EditorComponent.bs.js";
 
 import './App.css';
@@ -16,6 +17,9 @@ function AppMain(Props) {
                   state: state,
                   dispatch: dispatch
                 }), React.createElement("hr", undefined), React.createElement(EditorComponent$RescriptReactIntro.make, {
+                  state: state,
+                  dispatch: dispatch
+                }), React.createElement("hr", undefined), React.createElement("hr", undefined), React.createElement(SVGDisplay$RescriptReactIntro.make, {
                   state: state,
                   dispatch: dispatch
                 }), React.createElement("hr", undefined));

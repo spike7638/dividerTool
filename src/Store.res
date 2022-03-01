@@ -3,7 +3,7 @@ open Types
 
 
 let initialState: state = {
-  data: {counter:100, thickness: 0.198, width: 15.25, depth: 18.0, height: 1.5, 
+  data: {counter:100, thickness: 0.198, width: 5.0, depth: 4.0, height: 1.5, 
   includeEnclosure: true, dipPercentageV: 70.0, dipPercentageH: 0.0, spacing: 0.5},
   svg: "", drawing: list{},
 }

@@ -233,8 +233,8 @@ var initialState = {
   data: {
     counter: 100,
     thickness: 0.198,
-    width: 15.25,
-    depth: 18.0,
+    width: 5.0,
+    depth: 4.0,
     height: 1.5,
     spacing: 0.5,
     includeEnclosure: true,
