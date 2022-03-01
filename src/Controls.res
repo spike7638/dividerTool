@@ -6,10 +6,10 @@
 
 // update SVG button
 // SVG Display text area
-
+ 
  
 @react.component
-let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
+let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
   <main>
     <div className="Controls">
       <header className="Controls-header">
@@ -79,12 +79,12 @@ let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
           }}
           step=0.001 min="0" max="6.0"></input>
         <br />
-        <label htmlFor="height" > {React.string("Space between dots ")} </label>
+        <label htmlFor="spacing" > {React.string("Space between dots ")} </label>
         <input type_="number" id="spacing" name="spacing" 
         value ={Js.Float.toString(state.data.spacing)}
           onChange={event => {
             dispatch(
-              Store.ChangeHeight(float_of_string(ReactEvent.Form.target(event)["value"]))
+              Store.ChangeSpacing(float_of_string(ReactEvent.Form.target(event)["value"]))
             )
           }}
           step=0.001 min="0" max="6.0"></input>
@@ -129,15 +129,19 @@ let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
         // <label htmlFor="svgtext" > {React.string("q")} </label>
         <button onClick={_ => {          
           dispatch(
-            //Store.ChangeDrawing(Editor.getStrokes()),
-            Store.NoOp,
+            Store.ChangeDrawing(EditorComponent.getStrokes()),
           )  
-        }}> {React.string("Refresh SVG")}</button> 
+        }}> {React.string("Refresh SVG" ++ string_of_int(List.length(EditorComponent.getStrokes())))}</button> 
         <br/>
-        // <label htmlFor="svgtext" > {React.string("SVG Result")} </label>
-       <textarea id="svgtext" name="svgtext" defaultValue="When you press the 'refresh SVG' button, the results will appear here." rows=20 cols=80>
-//       {React.string("When you press the 'refresh SVG' button, the results will appear here.")} 
-       </textarea>
+        <p style={ReactDOM.Style.make(~padding="10px", ~fontSize="12pt", ~border="2px", ~color="black", ())}>
+//        {React.string(EditorComponent.stringOfStrokes("current strokes", EditorComponent.getStrokes()))}
+        {React.string(DrawingToSVG.dividerToSVG(DrawingToSVG.drawingToDivider(state, EditorComponent.getStrokes())))}
+        </p> 
+
+      //  <textarea id="svgtext" name="svgtext" defaultValue="When you press the 'refresh SVG' button, the results will appear here." rows=20 cols=80>
+      //  {React.string("Dummy to overwrite default")} 
+       //{React.string(EditorComponent.stringOfStrokes("current strokes", EditorComponent.getStrokes()))} 
+      //  </textarea>
        <br/>
        // </form>
       </div>

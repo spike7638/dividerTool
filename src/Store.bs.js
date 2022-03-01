@@ -102,6 +102,25 @@ function updateHeight(s, t) {
         };
 }
 
+function updateSpacing(s, t) {
+  var init = s.data;
+  return {
+          data: {
+            counter: init.counter,
+            thickness: init.thickness,
+            width: init.width,
+            depth: init.depth,
+            height: init.height,
+            spacing: t,
+            includeEnclosure: init.includeEnclosure,
+            dipPercentageH: init.dipPercentageH,
+            dipPercentageV: init.dipPercentageV
+          },
+          svg: s.svg,
+          drawing: s.drawing
+        };
+}
+
 function updateIncludeEnclosure(s, t) {
   var init = s.data;
   return {
@@ -196,13 +215,15 @@ function reducer(state, action) {
         return updateHeight(state, action._0);
     case /* ChangeEnclosure */5 :
         return updateIncludeEnclosure(state, action._0);
-    case /* ChangeDipPercentageH */6 :
+    case /* ChangeSpacing */6 :
+        return updateSpacing(state, action._0);
+    case /* ChangeDipPercentageH */7 :
         return updateDipPercentageH(state, action._0);
-    case /* ChangeDipPercentageV */7 :
+    case /* ChangeDipPercentageV */8 :
         return updateDipPercentageV(state, action._0);
-    case /* ChangeSVG */8 :
+    case /* ChangeSVG */9 :
         return updateSVGContents(state, action._0);
-    case /* ChangeDrawing */9 :
+    case /* ChangeDrawing */10 :
         return updateDrawing(state, action._0);
     
   }
@@ -231,6 +252,7 @@ export {
   updateWidth ,
   updateDepth ,
   updateHeight ,
+  updateSpacing ,
   updateIncludeEnclosure ,
   updateDipPercentageH ,
   updateDipPercentageV ,

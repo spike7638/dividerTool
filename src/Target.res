@@ -22,7 +22,7 @@ let reducer = (state, action) =>
  
  
 @react.component
-let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
+let make = (~state: Types.state, ~_dispatch: Store.action => unit) => {
   let (stateLocal, dispatchLocal) = useReducer(reducer, initialState)
   <main>
     <div className="Controls">

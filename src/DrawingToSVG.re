@@ -4,14 +4,10 @@ open Types;
 type f = float; 
 type direction = H | V;
 type meeting = Cross | Terminate | End; // does a crossing span meet the main span by Crossing it, or by terminating at it? 
-    // or is this a "virtual" meeting at one of the two ends of the span? 
+                                        // or is this a "virtual" meeting at one of the two ends of the span? (an End) 
 type spanSummary = {m:meeting, pos:int}
 
-// XXX Things to link to other parts 
-let frameWidth = 220.0; 
-let gridSpacing = 30.0;
-let thickness = 5.0;
-let t = thickness;
+
 
 /* 
 ** inputs: 
@@ -30,12 +26,11 @@ let converterProducer: (float, float, float, int) => float =
       float_of_int(n) *. g;
     };
 
-let gToWH = converterProducer(frameWidth, gridSpacing, thickness);
 
 let classifyH: (int, list(span)) => list(spanSummary) =
   (y, spans) => List.map(s => {m:(s.p1.yi == y || s.p2.yi == y) ? Terminate:Cross, pos:s.p1.xi}, spans);
 
-let rec convertHelper:(int, int, int, list(spanSummary)) => list(feature) = (ss, sf, n, meets) => {
+let rec convertHelper:(float, int, int, int, list(spanSummary), int=>float) => list(feature) = (thickness, ss, sf, n, meets, gToWH) => {
 let t = thickness; 
 switch (meets) {
 | [] => failwith("Empty meets-list in convertHelper!")
@@ -67,18 +62,18 @@ switch (meets) {
     let fillShort = G(gToWH(l) -. (gToWH(k) +. t));
 
     switch (q) {
-    | End => [fill, ...convertHelper(ss, sf, l, [{m: r, pos: l}, ...tl])]
+    | End => [fill, ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH)]
     | Cross => if (k != ss){
         [
         XU(t),
         fillShort,
-        ...convertHelper(ss, sf, l, [{m: r, pos: l}, ...tl]),
+        ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH),
       ]
     } else {
         [
         T(t),
         fillShort,
-        ...convertHelper(ss, sf, l, [{m: r, pos: l}, ...tl]),
+        ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH),
       ]
     }
     | Terminate =>
@@ -86,13 +81,13 @@ switch (meets) {
         [
           CU(t),
           fillShort,
-          ...convertHelper(ss, sf, l, [{m: r, pos: l}, ...tl]),
+          ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH),
         ];
       } else {
         [
           S(t),
           fillShort,
-          ...convertHelper(ss, sf, l, [{m: r, pos: l}, ...tl]),
+          ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH),
         ];
       }
     };
@@ -123,10 +118,12 @@ let rec cleanup:list(feature) => list(feature) = ss => {
     }
 };
 
-let convertOne: (span, list(span)) => list(feature) = (s, spans) => {
+let convertOne: (span, list(span), settings) => list(feature) = (s, spans, settings) => {
     let span1 = classifyH(s.p1.yi, spans);
     let spanSummaries = enhance(s, span1);
-    cleanup(convertHelper(s.p1.xi, s.p2.xi, s.p1.xi, spanSummaries));
+    let gToWH = converterProducer(settings.width, settings.spacing, settings.thickness);
+
+    cleanup(convertHelper(settings.thickness, s.p1.xi, s.p2.xi, s.p1.xi, spanSummaries, gToWH));
 }  
 
 let swap:span => span = s => {p1:s.p2, p2:s.p1};
@@ -171,24 +168,33 @@ let flipFeatureListList = x => List.map(flipFeatureList, x);
 //    sort them left to right
 //    apply "convert(hs, this-sorted-list)"
 //    and accumulate < use list.foldRight((x, y) => [x, ...r], result-of-appn, []) >
-let prepAndConvert: (list(span), list(span)) => list(list(feature)) = (hSpans, vSpans) => {
+let prepAndConvert: (list(span), list(span), settings) => list(list(feature)) = (hSpans, vSpans, settings) => {
     let qq: span => list(feature)=  s => 
     {
         let crosses = List.filter(v => meets(s, v), vSpans)
         let cross2 = List.sort((s1, s2) => compare(s1.p1.xi, s2.p1.xi), crosses)
-        convertOne(s, cross2)
+        convertOne(s, cross2, settings)
     }
     List.fold_right((x, r) => [qq(x), ... r], hSpans, []);
 }
 // convertAll: do cleanup; sort into H and V; for each H apply convertOne; for each V apply the analogous thing. 
-let convertAll: list(span) => list(list(feature)) = drawing => {
+let convertAll: (list(span), settings) => list(list(feature)) = (drawing, settings) => {
     let d = List.map(polish, drawing); //make sure spans are in increasing order
     let dH = List.filter(isHorizontal, d);
     let dV = List.filter(x => !isHorizontal(x), d);
 
-    let fH = prepAndConvert(dH, dV);
-    let fV = flipFeatureListList(prepAndConvert(flipSpanList(dV), flipSpanList(dH)));
+    let fH = prepAndConvert(dH, dV, settings);
+    let fV = flipFeatureListList(prepAndConvert(flipSpanList(dV), flipSpanList(dH), settings));
     fH @ fV
+}
+let convertAll2: (list(span), settings) => (list(list(feature)), list(list(feature))) = (drawing, s) => {
+    let d = List.map(polish, drawing); //make sure spans are in increasing order
+    let dH = List.filter(isHorizontal, d);
+    let dV = List.filter(x => !isHorizontal(x), d);
+
+    let fH = prepAndConvert(dH, dV, s);
+    let fV = flipFeatureListList(prepAndConvert(flipSpanList(dV), flipSpanList(dH), s));
+    (fH, fV)
 }
 
 
@@ -208,7 +214,7 @@ let convertAll: list(span) => list(list(feature)) = drawing => {
 // let testTXST = [cross1t, cross2, cross3, cross4t];
 
 let soi = string_of_int;
-let sof = string_of_float
+let sof = Js.Float.toString;
 let string_of_feature: feature => string = q => 
 switch(q){
     | G(f) => "G(" ++ sof(f) ++ ")"
@@ -323,8 +329,477 @@ let string_of_span_summaryi: spanSummary => string = ({m:meet, pos:n}) =>
 let spanList_of_strokeList: list(stroke) => list(span) = sl => 
 List.map( s => s.sp, sl);
 
-let converter: list(stroke) => list(list(feature)) = sl =>
-convertAll(spanList_of_strokeList(sl));
+let converter: (list(stroke), settings) => list(list(feature)) = (sl, settings) =>
+convertAll(spanList_of_strokeList(sl), settings);
 
-// example usage
-// let description = convertAll(drawing); 
+let stringOfStrokeList:  (list(stroke), settings) => string = (sl, settings) => {
+  let c:list(list(feature)) = converter(sl, settings);
+  let make_string = sl => {
+    List.fold_right( (x, s)=> (string_of_feature(x)++ ", ") ++ s, sl, "")  
+  }
+  let d = List.fold_right( (x, s) => (make_string(x) ++ "\n" ++ s), c, "") 
+  d
+} 
+
+// type point = (float, float); // point for SVG stuff
+// type boxSpec = {
+//   height: float,
+//   width: float,
+//   lowerLeft: point,
+//   isDip: bool /* disgusting hack; really should have "boxes" and "dips" and possibly "lineSegment"s too*/
+// };
+
+// type panelGeom = list(feature); 
+
+// type panel = {
+//   geom: panelGeom,
+//   name: string,
+// }; /* horiz panels never contains CUs or XUs; vert panels never contain CLs or XLs */
+
+// type divider = {
+//   horiz: list(panel), /* horiz panels never contains CUs or XUs */
+//   vert: list(panel), /* vert panels never contain CLs or XLs   */
+//   spec: specs,
+// };
+
+// type span = {p1:gpoint, p2:gpoint};
+
+
+// type drawing = list(stroke);
+
+// type specs = {
+//   height: float,
+//   dipSize: float,
+//   t: float,
+//   pinCount: int, /* for one pin, divide height into 3 parts; for 3 tabs, divide into 5 */
+//   tabFraction: float /*  between 0 and 1 */
+// };
+// type settings = {
+//   counter: int, // add more later
+//   thickness: float,
+//   width: float,
+//   depth: float,
+//   height: float,
+//   spacing: float,
+//   includeEnclosure: bool,
+//   dipPercentageH: float,
+//   dipPercentageV: float,
+//  }
+
+// type state = {
+//   data: settings,
+//   svg: string,
+//   drawing: list<stroke>,
+// }
+
+
+let drawingToDivider: (Types.state, drawing) => divider = (st, drawing) => {
+  let settings = st.data;
+  let t = settings.thickness;
+  // convert drawing to list of spans
+  let d1 = spanList_of_strokeList(drawing);
+  // split spans into horizontal and vertical
+  let dH = List.filter(isHorizontal, d1);
+  let dV = List.filter(x => !isHorizontal(x), d1);
+  // build "specs" structure
+  let sp0:specs = {height: settings.height,
+     dipSizeH: settings.height *. settings.dipPercentageH /. 100.0,
+     dipSizeV: settings.height *. settings.dipPercentageV /. 100.0,
+     t: settings.thickness,
+     pinCount: 5, /* for one pin, divide height into 3 parts; for 3 tabs, divide into 5 */
+     tabFraction: 0.3, //float /*  between 0 and 1 */
+     };
+  let (dH, dV) = convertAll2(d1, st.data);
+  // convert each horizontal span's feature-list into a panel to get "horiz" component of divider
+  let horiz0 = List.mapi( (i, fl) => {geom:fl, isHorizontal: true, name:"H"++string_of_int(i)}, dH);
+  let vert0 = List.mapi( (i, fl) => {geom:fl, isHorizontal: false, name:"V"++string_of_int(i)}, dV);
+  // assemble horiz, vert, and specs into a return value. 
+  {horiz:horiz0, vert:vert0, spec:sp0}  
+} 
+
+  
+
+//============OLD CODE ====//
+
+let sof = Js.Float.toString;
+let rec checkPanelhelper: panelGeom => bool =
+  lst =>
+    switch (lst) {
+    | [] => true
+    | [CU(_), ..._] => false
+    | [CL(_), ..._] => false
+    | [_, ...tl] => checkPanelhelper(tl)
+    };
+
+/* should also check Gs at ends */
+let checkPanel: panelGeom => bool =
+  lst =>
+    switch (lst) {
+    | []
+    | [_] => false
+    | [G(_), ..._] => false
+    | lst =>
+      switch (List.rev(lst)) {
+      | [G(_), ..._] => false
+      | _ => checkPanelhelper(lst)
+      }
+    };
+
+let rec panelLength: panelGeom => float =
+  fun
+  | [] => 0.0
+  | [CU(f), ...rst] => f +. panelLength(rst)
+  | [CL(f), ...rst] => f +. panelLength(rst)
+  | [XU(f), ...rst] => f +. panelLength(rst)
+  | [XL(f), ...rst] => f +. panelLength(rst)
+  | [S(f), ...rst] => f +. panelLength(rst)
+  | [T(f), ...rst] => f +. panelLength(rst)
+  | [G(f), ...rst] => f +. panelLength(rst)
+  | [D(f), ...rst] => f +. panelLength(rst);
+
+/*
+  inputs:
+    start: how many times pinHeight at which to start bottom-most cut-out
+    fin: same, but for top cut-out
+    ht: the height of each pin (or cutout)
+    wid: the horizontal extent of each pin (usually spec.t)
+    x: the x-coor of the lower left corner
+ */
+let rec pinHelper: (int, int, float, float, float) => list(boxSpec) =
+  (start, fin, ht, wid, x) =>
+    if (start > fin) {
+      [];
+    } else {
+      let s = float_of_int(start);
+      [
+        {lowerLeft: (x, s *. ht), height: ht, width: wid, isDip: false},
+        ...pinHelper(start + 2, fin, ht, wid, x),
+      ];
+    };
+
+let pinU: (float, feature, specs) => list(boxSpec) =
+  (x, c, s) =>
+    switch (c) {
+    | CL(f) =>
+      let pinHeight = s.height /. float_of_int(2 * s.pinCount + 1);
+      pinHelper(0, 2 * s.pinCount, pinHeight, f, x);
+    | _ => failwith("Bad upper-pin specification")
+    };
+
+let pinL: (float, feature, specs) => list(boxSpec) =
+  (x, c, s) =>
+    switch (c) {
+    | CU(f) =>
+      let pinHeight = s.height /. float_of_int(2 * s.pinCount + 1);
+      pinHelper(1, 2 * s.pinCount - 1, pinHeight, f, x);
+    | _ => failwith("Bad lower-pin specification")
+    };
+
+let outerBox: (panelGeom, specs) => boxSpec =
+  (lst, spec) => {
+    height: spec.height,
+    width: panelLength(lst),
+    lowerLeft: (0.0, 0.0),
+    isDip: false,
+  };
+
+/* inputs;
+   x: location of left side of tab
+   c: the tab specification
+   s: the overall box specification.
+   output:
+   a list containing the two boxSpecs for the boxes that need to be removed.
+   */
+
+let tabBoxes: (float, feature, specs) => list(boxSpec) =
+  (x, c, s) =>
+    switch (c) {
+    | T(f) =>
+      let q = (1.0 -. s.tabFraction) /. 2.0;
+      let yBot = q *. s.height;
+      let yTop = (1.0 -. q) *. s.height;
+      [
+        {height: yBot, width: f, lowerLeft: (x, 0.0), isDip: false},
+        {height: yBot, width: f, lowerLeft: (x, yTop), isDip: false},
+      ];
+    | _ => failwith("Bad tab specification")
+    };
+let tabSlots: (float, feature, specs) => list(boxSpec) =
+  (x, c, s) =>
+    switch (c) {
+    | S(f) =>
+      let q = (1.0 -. s.tabFraction) /. 2.0;
+      let yBot = q *. s.height;
+      let yTop = (1.0 -. q) *. s.height;
+      [
+        {height: yTop -. yBot, width: f, lowerLeft: (x, yBot), isDip: false},
+      ];
+    | _ => failwith("Bad slot specification")
+    };
+
+let slitL: (float, feature, specs) => list(boxSpec) =
+  (x, c, s) =>
+    switch (c) {
+    | XU(f) =>
+      let slotHeight = 0.5 *. s.height;
+      [
+        {
+          height: slotHeight,
+          width: f,
+          lowerLeft: (x, slotHeight),
+          isDip: false,
+        },
+      ];
+    | _ => failwith("Bad lower-slit specification")
+    };
+
+let slitU: (float, feature, specs) => list(boxSpec) =
+  (x, c, s) =>
+    switch (c) {
+    | XL(f) =>
+      let slotHeight = 0.5 *. s.height;
+      [{height: slotHeight, width: f, lowerLeft: (x, 0.0), isDip: false}];
+    | _ => failwith("Bad upper-slit specification")
+    };
+
+
+let stringOfBox: boxSpec => string =
+  bs => {
+    let h = bs.height;
+    let w = bs.width;
+    let (x, y) = bs.lowerLeft;
+    "(" ++ sof(x) ++ ", " ++ sof(y) ++ "); w = " ++ sof(w) ++ ", h = " ++ sof(h) ++ "\n";
+  };
+
+/*
+ ** at location x, start a "dip" of depth "dipSize", starting at
+ ** x + dipSize, and ending at x + f - dipSize, which should be greater
+ ** or else there's an error.
+ */
+let dip: (float, float, float, float) => list(boxSpec) =
+  (x, f, height, dipSize) => {
+    let xs = x +. dipSize;
+    let xf = x +. f -. dipSize;
+    let xs = x +. 0.5;
+    let xf = x +. f -. 0.5;
+    let w = xf -. xs;
+    if (w < 4.0 *. dipSize) {
+      failwith("Impossible dip length!");
+    } else {
+      [
+        {
+          height: height,
+          width: xf -. xs,
+          lowerLeft: (xs, height -. dipSize),
+          isDip: true,
+        },
+      ];
+    };
+  };
+
+let rec allBoxesHelper: (panelGeom, specs, float, bool) => list(boxSpec) =
+  (panel, sp, x, isHorizontal) =>
+    switch (panel) {
+    | [] => []
+    | [CU(f), ...rst] => pinL(x, CU(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [CL(f), ...rst] => pinU(x, CL(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [XU(f), ...rst] =>
+      slitL(x, XU(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [XL(f), ...rst] =>
+      slitU(x, XL(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [S(f), ...rst] =>
+      tabSlots(x, S(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [T(f), ...rst] =>
+      tabBoxes(x, T(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [G(f), ...rst] => allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [D(f), ...rst] =>
+      //      print_string("making a dip!");
+      dip(x, f, sp.height, isHorizontal? sp.dipSizeH:sp.dipSizeV) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    };
+
+let allBoxes: (panelGeom, specs, bool) => list(boxSpec) =
+  (panel, sp, isHorizontal) => [outerBox(panel, sp), ...allBoxesHelper(panel, sp, 0.0, isHorizontal)];
+
+let textOfPoint: (float, float) => string =
+  (x, y) => sof(72.0 *. x) ++ ", " ++ sof(72.0 *. y) ++ " ";
+
+let ps = (name, x, y) =>
+  print_string(name ++ ": " ++ sof(x) ++ ", " ++ sof(y) ++ "\n");
+
+let boxToPathD: (boxSpec, specs, float) => string =
+{
+  (bs, sp, dipSize) => {
+    let helper = (xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) => {
+      "M "
+      ++ textOfPoint(xs, ys)
+      ++ "Q "
+      ++ textOfPoint(xq, yq)
+      ++ "  "
+      ++ textOfPoint(xm, ym)
+      ++ "T "
+      ++ textOfPoint(xt, yt)
+      ++ "M "
+      ++ textOfPoint(xf, yf);
+    };
+
+    if (bs.isDip) {
+      let d = dipSize;
+      let ((xs, _), ys) = (bs.lowerLeft, bs.height);
+      let (xq, yq) = (xs +. 0.875 *. d, ys);
+      let (xm, ym) = (xs +. d, ys -. d /. 2.0);
+      let (xt, yt) = (xs +. 2. *. d, ys -. d);
+      let (xf, yf) = (xs +. 2. *. d, ys -. d);
+      let st1 = helper(xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) ++ " ";
+
+      let (xs2, ys2) = (fst(bs.lowerLeft) +. bs.width, bs.height);
+      let (xq2, yq2) = (xs2 -. 0.875 *. d, ys2);
+      let (xm2, ym2) = (xs2 -. d, ys2 -. d /. 2.0);
+      let (xt2, yt2) = (xs2 -. 2. *. d, ys2 -. d);
+      let (xf2, yf2) = (xs2 -. 2. *. d, ys2 -. d);
+
+      let st2 = "M " ++ textOfPoint(xf, yf) ++ "L " ++ textOfPoint(xf2, yf2);
+      let st3 =
+        helper(xs2, ys2, xq2, yq2, xm2, ym2, xt2, yt2, xf2, yf2) ++ " ";
+
+      st1 ++ st2 ++ st3;
+      // <path d="M200,300 Q375,300 400,400 T600,500 M 600,500 L 800,500"
+    } else {
+      let hs = sof(72.0 *. bs.height);
+      let ws = sof(72.0 *. bs.width);
+      let (x, y) = bs.lowerLeft;
+      let (xs, ys) = (sof(72.0 *. x), sof(72.0 *. y));
+      "M "
+      ++ xs
+      ++ ", "
+      ++ ys
+      ++ "  v "
+      ++ hs
+      ++ "  h "
+      ++ ws
+      ++ "  v -"
+      ++ hs
+      ++ "  z\n";
+    };
+  };
+}
+
+let rec boxListToPathD: (list(boxSpec), specs, float) => string =
+  (bsl, sp, dipSize) => {
+    //print_string("length: " ++ string_of_int(List.length(bsl)) ++ "\n");
+    switch (bsl) {
+    | [] => ""
+    | [b, ...tail] => boxToPathD(b, sp, dipSize) ++ boxListToPathD(tail, sp, dipSize)
+    };
+  };
+
+let boxListToPath: (list(boxSpec), specs, float) => string =
+  (bList, sp, dipSize) => {
+    let dSpec = "d=\" " ++ boxListToPathD(bList, sp, dipSize) ++ "\"";
+    let head = "<path id=\"\" vector-effect=\"non-scaling-stroke\" class=\"st0\" ";
+    let tail = "/>\n";
+    head ++ dSpec ++ tail;
+  };
+
+let panelToPath: (panel, specs, float, float, float) => string =
+  (p, sp, x, y, dipSize) => { 
+    
+    let bList = allBoxes(p.geom, sp, p.isHorizontal); 
+    let dSpec = "d=\" " ++ boxListToPathD(bList, sp, dipSize) ++ "\""; 
+    //let dSpec = "";
+    let head =
+      "<g transform=\"translate("
+      ++ sof(x)
+      ++ ", "
+      ++ sof(y)
+      ++ ")\">\n"
+      ++ "<path id=\""
+      ++ p.name
+      ++ "\" vector-effect=\"non-scaling-stroke\" class=\"st0\" ";
+    let tail = "/>\n</g>\n";
+    head ++ dSpec ++ tail;
+  };
+
+let dividerToSVG: divider => string =
+  dr => {
+    let strokeWidth = "7.200000e-01";
+    let panelCount = List.length(dr.horiz) + List.length(dr.vert);
+    let panelWidth =
+      int_of_float(
+        72.0
+        *. List.fold_left(
+             (x, y) => max(x, y),
+             0.0,
+             List.map(
+               (p: panel) => panelLength(p.geom),
+               List.append(dr.horiz, dr.vert),
+             ),
+           ),
+      );
+    let windowHeight =
+      int_of_float(
+        20.0 +. float_of_int(panelCount) *. 72.0 *. (dr.spec.height +. 0.125),
+      );
+    
+    let shapeString =
+      "0 0 "
+      ++ string_of_int(20 + panelWidth)
+      ++ " "
+      ++ string_of_int(windowHeight);
+
+    let svgFront =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+      ++ "<!-- Generator: Adobe Illustrator 24.1.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\n"
+      ++ "<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" \n"
+      ++ "x=\"0px\" y=\"0px\" viewBox=\""
+      ++ shapeString
+      ++ " \" style=\"enable-background:new "
+      ++ shapeString
+      ++ ";\" xml:space=\"preserve\">"
+      ++ "<style type=\"text/css\">\n"
+      ++ ".st0{fill:none;stroke:#FF0000;stroke-width:"
+      ++ strokeWidth
+      ++ ";stroke-linecap:round;stroke-miterlimit:288;}\n</style>\n";
+    let svgBack = "</svg>\n";
+
+    let panelPathsH =
+      List.mapi(
+        (i, pan) =>
+          panelToPath(
+            pan,
+            dr.spec,
+            10.0,
+            10.0 +. float_of_int(i) *. 72.0 *. (dr.spec.height +. 0.125), 
+            dr.spec.dipSizeH
+          ),
+        dr.horiz,
+      );
+    let panelPathsV =
+      List.mapi(
+        (i, pan) =>
+          panelToPath(
+            pan,
+            dr.spec,
+            10.0,
+            10.0 +. float_of_int(i) *. 72.0 *. (dr.spec.height +. 0.125),
+            dr.spec.dipSizeV
+          ),
+        dr.vert,
+      ); 
+
+    let back = List.fold_right((s1, s2) => s1 ++ s2, List.append(panelPathsH, panelPathsV), svgBack);
+    svgFront ++ back;
+  };
+
+// let show: panel => unit =
+//   p => {
+//     print_string(p.name ++ ": ");
+//     print_string(sof(panelLength(p.geom)) ++ "\n");
+//   };
+
+
+
+
+
+// //let sp: specs = {height: 2.0, dipSize: 1.5, t, pinCount: 5, tabFraction: 0.3};
+
+let stringOfDivider: divider => string = dividerToSVG

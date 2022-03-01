@@ -9,7 +9,7 @@
 
  
 @react.component
-let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
+let make = (~state: Types.state, ~_dispatch: Store.action => unit) => {
   <main>
     <div className="Display">
       <header className="Display-header">

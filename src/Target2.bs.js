@@ -34,11 +34,7 @@ function querySelector(prim) {
   return Caml_option.nullable_to_opt(document.querySelector(prim));
 }
 
-var initialState = {
-  width: 100
-};
-
-function reducer(state, action) {
+function reducer(_state, action) {
   return {
           width: action.width
         };
@@ -46,8 +42,7 @@ function reducer(state, action) {
 
 function Target2(Props) {
   var state = Props.state;
-  React.useReducer(reducer, initialState);
-  var id = "reprocessing-square";
+  var id = "reprocessing-grid-editor";
   var setup = function (env) {
     Reprocessing_Env.size(200, 200, env);
     return s;
@@ -71,6 +66,10 @@ function Target2(Props) {
               id: id
             });
 }
+
+var initialState = {
+  width: 100
+};
 
 var make = Target2;
 

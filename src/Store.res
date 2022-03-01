@@ -1,25 +1,6 @@
-open Belt
 open Types
 
-type settings = {
-  counter: int, // add more later
-  thickness: float,
-  width: float,
-  depth: float,
-  height: float,
-  spacing: float,
-  includeEnclosure: bool,
-  dipPercentageH: float,
-  dipPercentageV: float,
- }
 
-type state = {
-  data: settings,
-  svg: string,
-  drawing: list<stroke>,
-  // add another field here -- probably using Belt.Map.String (or just Belt.Map) as https://github.com/dusty-phillips/rescript-react-intro src/Store.res --
-  // to save the current state of the drawing, even if the user resizes the drawer, etc. 
-}
 
 let initialState: state = {
   data: {counter:100, thickness: 0.198, width: 15.25, depth: 18.0, height: 1.5, 
@@ -34,6 +15,7 @@ type action =
   | ChangeDepth(float)
   | ChangeHeight(float)
   | ChangeEnclosure(bool)
+  | ChangeSpacing(float)
   | ChangeDipPercentageH(float)
   | ChangeDipPercentageV(float)
   | ChangeSVG(string)
@@ -71,6 +53,12 @@ let updateHeight: (state, float) => state = (s:state, t: float) => {
   {
     ...s,
     data: {...s.data, height: t},
+  }
+}
+let updateSpacing: (state, float) => state = (s:state, t: float) => {
+  {
+    ...s,
+    data: {...s.data, spacing: t},
   }
 }
 let updateIncludeEnclosure: (state, bool) => state = (s:state, t: bool) => {
@@ -117,8 +105,9 @@ let reducer = (state: state, action: action) => {
   | ChangeValue({counter}) => updateCounter(state, counter)
   | ChangeThickness(t) => updateThickness(state, t)
   | ChangeWidth(t) => updateWidth(state, t)
-  | ChangeDepth(t) => updateDepth(state, t)
-  | ChangeHeight(t) => updateHeight(state, t)
+  | ChangeDepth(t) => updateDepth(state, t) 
+  | ChangeHeight(t) => updateHeight(state, t) 
+  | ChangeSpacing(t) => updateSpacing(state, t)
   | ChangeEnclosure(t) => updateIncludeEnclosure(state, t)
   | ChangeDipPercentageH(t) => updateDipPercentageH(state, t)
   | ChangeDipPercentageV(t) => updateDipPercentageV(state, t)

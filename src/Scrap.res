@@ -1,6 +1,7 @@
+let a = list{"a", "b"};
 
 @react.component
-let make = (~state: Store.state, ~dispatch: Store.action => unit) => {
+let make = (~_state: Types.state, ~_dispatch: Store.action => unit) => {
   <main>
     <div className="Scrap">
       <header className="Scrap-header">

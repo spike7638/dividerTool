@@ -19,11 +19,13 @@
     "start:res": "rescript build -w",
     "build:res": "rescript build",
     "build": "react-scripts build",
+    "buildZ": "react-scripts build -with-deps",
+    "buildRZ": "rescript build -with-deps -w",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": [
+    "extends": [ 
       "react-app",
       "react-app/jest"
     ]

@@ -33,7 +33,8 @@ type feature =
 
 type specs = {
   height: float,
-  dipSize: float,
+  dipSizeH: float,
+  dipSizeV: float,
   t: float,
   pinCount: int, /* for one pin, divide height into 3 parts; for 3 tabs, divide into 5 */
   tabFraction: float /*  between 0 and 1 */
@@ -47,11 +48,12 @@ type boxSpec = {
   isDip: bool /* disgusting hack; really should have "boxes" and "dips" and possibly "lineSegment"s too*/
 };
 
-type panelGeom = list(feature); /*  a panel cannot start or end with a "G"; never contain CUs or CLs or Ts in interior, must start or end with G, CL, CU, or T */
+type panelGeom = list(feature); 
 
 type panel = {
+  isHorizontal: bool,
   geom: panelGeom,
-  name: string,
+  name: string, 
 }; /* horiz panels never contains CUs or XUs; vert panels never contain CLs or XLs */
 
 type divider = {
@@ -59,3 +61,21 @@ type divider = {
   vert: list(panel), /* vert panels never contain CLs or XLs   */
   spec: specs,
 };
+
+type settings = {
+  counter: int, // add more later
+  thickness: float,
+  width: float,
+  depth: float,
+  height: float,
+  spacing: float,
+  includeEnclosure: bool,
+  dipPercentageH: float,
+  dipPercentageV: float,
+ }
+
+type state = {
+  data: settings,
+  svg: string,
+  drawing: list(stroke),
+}

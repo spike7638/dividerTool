@@ -13,9 +13,18 @@ function Scrap(Props) {
                             }, String(Target2$RescriptReactIntro.getValue(undefined)))))));
 }
 
+var a = {
+  hd: "a",
+  tl: {
+    hd: "b",
+    tl: /* [] */0
+  }
+};
+
 var make = Scrap;
 
 export {
+  a ,
   make ,
   
 }
