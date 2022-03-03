@@ -4,8 +4,11 @@ import * as List from "rescript/lib/es6/list.js";
 import * as Curry from "rescript/lib/es6/curry.js";
 import * as React from "react";
 import * as Caml_format from "rescript/lib/es6/caml_format.js";
-import * as DrawingToSVG$RescriptReactIntro from "./DrawingToSVG.bs.js";
-import * as EditorComponent$RescriptReactIntro from "./EditorComponent.bs.js";
+import * as DrawingToSVG$DividerEditor from "./DrawingToSVG.bs.js";
+import * as EditorComponent$DividerEditor from "./EditorComponent.bs.js";
+
+import './Controls.css';
+;
 
 function Controls(Props) {
   var state = Props.state;
@@ -128,17 +131,15 @@ function Controls(Props) {
                               onClick: (function (param) {
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeDrawing */10,
-                                              _0: EditorComponent$RescriptReactIntro.getStrokes(undefined)
+                                              _0: EditorComponent$DividerEditor.getStrokes(undefined)
                                             });
                                 })
-                            }, "Refresh SVG" + String(List.length(EditorComponent$RescriptReactIntro.getStrokes(undefined)))), React.createElement("br", undefined), React.createElement("p", {
-                              style: {
-                                border: "2px",
-                                color: "black",
-                                fontSize: "12pt",
-                                padding: "10px"
-                              }
-                            }, DrawingToSVG$RescriptReactIntro.dividerToSVG(DrawingToSVG$RescriptReactIntro.drawingToDivider(state, EditorComponent$RescriptReactIntro.getStrokes(undefined)))), React.createElement("br", undefined)))));
+                            }, "Refresh SVG" + String(List.length(EditorComponent$DividerEditor.getStrokes(undefined)))), React.createElement("br", undefined), React.createElement("div", {
+                              className: "svgtext1"
+                            }, React.createElement("pre", {
+                                  className: "svgtext",
+                                  type: "svgtext"
+                                }, DrawingToSVG$DividerEditor.dividerToSVG(DrawingToSVG$DividerEditor.drawingToDivider(state, EditorComponent$DividerEditor.getStrokes(undefined))))), React.createElement("br", undefined)))));
 }
 
 var make = Controls;
@@ -147,4 +148,4 @@ export {
   make ,
   
 }
-/* react Not a pure module */
+/*  Not a pure module */

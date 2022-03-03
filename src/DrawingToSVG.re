@@ -42,7 +42,7 @@ switch (meets) {
     | End => [G(gToWH(sf) +. t -. gToWH(n))]
     | Cross =>
       if (sf != n) {
-        [XU(t), G(gToWH(sf) -. gToWH(n))];
+        [XL(t), G(gToWH(sf) -. gToWH(n))];
       } else {
         [T(t)];
       }
@@ -50,7 +50,7 @@ switch (meets) {
       if (sf != n) {
         [S(t), G(gToWH(sf) -. gToWH(n))];
       } else {
-        [CU(t)];
+        [CL(t)];
       }
     };
   }
@@ -65,7 +65,7 @@ switch (meets) {
     | End => [fill, ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH)]
     | Cross => if (k != ss){
         [
-        XU(t),
+        XL(t),
         fillShort,
         ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH),
       ]
@@ -79,7 +79,7 @@ switch (meets) {
     | Terminate =>
       if (k == ss) {
         [
-          CU(t),
+          CL(t),
           fillShort,
           ...convertHelper(thickness, ss, sf, l, [{m: r, pos: l}, ...tl], gToWH),
         ];
@@ -162,7 +162,7 @@ let flipFeature: feature => feature = q => {
 }
 let flipFeatureList = x => List.map(flipFeature, x);
 let flipFeatureListList = x => List.map(flipFeatureList, x);
-
+  
 // for each span hs in hSpans
 //    find all vSpans that meet it
 //    sort them left to right
@@ -364,7 +364,7 @@ let stringOfStrokeList:  (list(stroke), settings) => string = (sl, settings) => 
 
 // type span = {p1:gpoint, p2:gpoint};
 
-
+ 
 // type drawing = list(stroke);
 
 // type specs = {
@@ -385,7 +385,7 @@ let stringOfStrokeList:  (list(stroke), settings) => string = (sl, settings) => 
 //   dipPercentageH: float,
 //   dipPercentageV: float,
 //  }
-
+ 
 // type state = {
 //   data: settings,
 //   svg: string,
@@ -694,31 +694,36 @@ let rec boxListToPathD: (list(boxSpec), specs, float) => string =
 
 let boxListToPath: (list(boxSpec), specs, float) => string =
   (bList, sp, dipSize) => {
-    let dSpec = "d=\" " ++ boxListToPathD(bList, sp, dipSize) ++ "\"";
+    let dSpec = "d=\" \n" ++ boxListToPathD(bList, sp, dipSize) ++ "\"";
     let head = "<path id=\"\" vector-effect=\"non-scaling-stroke\" class=\"st0\" ";
     let tail = "/>\n";
     head ++ dSpec ++ tail;
   };
 
+let text= (x:float, y:float, s:string) => 
+"\n<text x=\"" ++ string_of_float(x) ++ 
+   "\" y=\"" ++ string_of_float(y)  ++"\" fill=\"#00FF00\" >" ++ s ++ "</text>\n";
+
 let panelToPath: (panel, specs, float, float, float) => string =
   (p, sp, x, y, dipSize) => { 
-    
+      
     let bList = allBoxes(p.geom, sp, p.isHorizontal); 
-    let dSpec = "d=\" " ++ boxListToPathD(bList, sp, dipSize) ++ "\""; 
+    let dSpec = "d=\" \n" ++ boxListToPathD(bList, sp, dipSize) ++ "\""; 
     //let dSpec = "";
-    let head =
+    let head = 
       "<g transform=\"translate("
       ++ sof(x)
       ++ ", "
       ++ sof(y)
       ++ ")\">\n"
+      ++ text(20.0, 20.0, p.name)  
       ++ "<path id=\""
       ++ p.name
       ++ "\" vector-effect=\"non-scaling-stroke\" class=\"st0\" ";
     let tail = "/>\n</g>\n";
     head ++ dSpec ++ tail;
   };
-
+ 
 let dividerToSVG: divider => string =
   dr => {
     let strokeWidth = "7.200000e-01";
@@ -773,14 +778,16 @@ let dividerToSVG: divider => string =
           ),
         dr.horiz,
       );
+  
+    let offset = (float_of_int(List.length(dr.horiz))+.0.2) *. 72.0 *. (dr.spec.height +. 0.125);
     let panelPathsV =
       List.mapi(
         (i, pan) =>
           panelToPath(
-            pan,
+            pan, 
             dr.spec,
             10.0,
-            10.0 +. float_of_int(i) *. 72.0 *. (dr.spec.height +. 0.125),
+            10.0 +. float_of_int(i) *. 72.0 *. (dr.spec.height +. 0.125) +. offset,  
             dr.spec.dipSizeV
           ),
         dr.vert,

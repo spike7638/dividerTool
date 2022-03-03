@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/rescript-lang/rescript-compiler/master/docs/docson/build-schema.json",
-  "name": "rescript-react-intro",
+  "name": "divider-editor",
   "reason": {
     "react-jsx": 3
   },

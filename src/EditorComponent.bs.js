@@ -238,9 +238,6 @@ function EditorComponent(Props) {
             color: s1.color
           };
   };
-  var showStrokes = function (label, strokes, loc, env) {
-    return Reprocessing_Draw.text(undefined, stringOfStrokes(label, strokes), loc, env);
-  };
   var merge = function (_strokes, overlapTest, mergeR) {
     while(true) {
       var strokes = _strokes;
@@ -310,23 +307,29 @@ function EditorComponent(Props) {
     Reprocessing_Draw.strokeWeight(2, env);
     Reprocessing_Env.size(900, 900, env);
     var d = buildGeom(state);
-    return {
-            p: /* Base */0,
-            dragging: false,
-            dragStart: {
-              xi: 0,
-              yi: 0
-            },
-            dragNow: {
-              xi: 0,
-              yi: 0
-            },
-            strokeColor: basicStrokeColor,
-            strokeList: makeOuterStrokes(d),
-            dots: makeDots(d),
-            oldStrokes: /* [] */0,
-            dg: d
-          };
+    var q_dragStart = {
+      xi: 0,
+      yi: 0
+    };
+    var q_dragNow = {
+      xi: 0,
+      yi: 0
+    };
+    var q_strokeList = makeOuterStrokes(d);
+    var q_dots = makeDots(d);
+    var q = {
+      p: /* Base */0,
+      dragging: false,
+      dragStart: q_dragStart,
+      dragNow: q_dragNow,
+      strokeColor: basicStrokeColor,
+      strokeList: q_strokeList,
+      dots: q_dots,
+      oldStrokes: /* [] */0,
+      dg: d
+    };
+    dataCarrier.strokes = q_strokeList;
+    return q;
   };
   var drawFrame = function (s, env) {
     Reprocessing_Draw.stroke(frameColor, env);
@@ -392,14 +395,7 @@ function EditorComponent(Props) {
             ];
             return Reprocessing_Draw.linef(p1, p2, env);
           }), state.strokeList);
-    showStrokes("Old", state.oldStrokes, [
-          380,
-          20
-        ], env);
-    return showStrokes("New", state.strokeList, [
-                640,
-                20
-              ], env);
+    
   };
   var drawCurrentLine = function (state, env) {
     if (state.dragging === false) {
@@ -479,7 +475,7 @@ function EditorComponent(Props) {
             RE_EXN_ID: "Match_failure",
             _1: [
               "EditorComponent.res",
-              490,
+              477,
               12
             ],
             Error: new Error()

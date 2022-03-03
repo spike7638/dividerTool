@@ -6,7 +6,9 @@
 
 // update SVG button
 // SVG Display text area
- 
+%%raw(`
+import './Controls.css';
+`) 
  
 @react.component
 let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
@@ -133,11 +135,12 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
           )  
         }}> {React.string("Refresh SVG" ++ string_of_int(List.length(EditorComponent.getStrokes())))}</button> 
         <br/>
-        <p style={ReactDOM.Style.make(~padding="10px", ~fontSize="12pt", ~border="2px", ~color="black", ())}>
+        <div className="svgtext1">
+        <pre type_="svgtext"  className="svgtext" > //style={ReactDOM.Style.make(~padding="10px", ~fontSize="12pt", ~border="2px", ~color="black", ())}>
 //        {React.string(EditorComponent.stringOfStrokes("current strokes", EditorComponent.getStrokes()))}
         {React.string(DrawingToSVG.dividerToSVG(DrawingToSVG.drawingToDivider(state, EditorComponent.getStrokes())))}
-        </p> 
-
+        </pre> 
+        </div>
       //  <textarea id="svgtext" name="svgtext" defaultValue="When you press the 'refresh SVG' button, the results will appear here." rows=20 cols=80>
       //  {React.string("Dummy to overwrite default")} 
        //{React.string(EditorComponent.stringOfStrokes("current strokes", EditorComponent.getStrokes()))} 

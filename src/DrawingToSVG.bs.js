@@ -51,7 +51,7 @@ function convertHelper(thickness, ss, sf, n, meets, gToWH) {
           if (k !== ss) {
             return {
                     hd: {
-                      TAG: /* XU */2,
+                      TAG: /* XL */3,
                       _0: thickness
                     },
                     tl: {
@@ -87,7 +87,7 @@ function convertHelper(thickness, ss, sf, n, meets, gToWH) {
           if (k === ss) {
             return {
                     hd: {
-                      TAG: /* CU */0,
+                      TAG: /* CL */1,
                       _0: thickness
                     },
                     tl: {
@@ -141,7 +141,7 @@ function convertHelper(thickness, ss, sf, n, meets, gToWH) {
           if (sf !== n) {
             return {
                     hd: {
-                      TAG: /* XU */2,
+                      TAG: /* XL */3,
                       _0: thickness
                     },
                     tl: {
@@ -179,7 +179,7 @@ function convertHelper(thickness, ss, sf, n, meets, gToWH) {
           } else {
             return {
                     hd: {
-                      TAG: /* CU */0,
+                      TAG: /* CL */1,
                       _0: thickness
                     },
                     tl: /* [] */0
@@ -867,14 +867,18 @@ function boxListToPathD(bsl, sp, dipSize) {
 }
 
 function boxListToPath(bList, sp, dipSize) {
-  var dSpec = "d=\" " + (boxListToPathD(bList, sp, dipSize) + "\"");
+  var dSpec = "d=\" \n" + (boxListToPathD(bList, sp, dipSize) + "\"");
   return "<path id=\"\" vector-effect=\"non-scaling-stroke\" class=\"st0\" " + (dSpec + "/>\n");
+}
+
+function text(x, y, s) {
+  return "\n<text x=\"" + (Pervasives.string_of_float(x) + ("\" y=\"" + (Pervasives.string_of_float(y) + ("\" fill=\"#00FF00\" >" + (s + "</text>\n")))));
 }
 
 function panelToPath(p, sp, x, y, dipSize) {
   var bList = allBoxes(p.geom, sp, p.isHorizontal);
-  var dSpec = "d=\" " + (boxListToPathD(bList, sp, dipSize) + "\"");
-  var head = "<g transform=\"translate(" + (x.toString() + (", " + (y.toString() + (")\">\n<path id=\"" + (p.name + "\" vector-effect=\"non-scaling-stroke\" class=\"st0\" ")))));
+  var dSpec = "d=\" \n" + (boxListToPathD(bList, sp, dipSize) + "\"");
+  var head = "<g transform=\"translate(" + (x.toString() + (", " + (y.toString() + (")\">\n" + (text(20.0, 20.0, p.name) + ("<path id=\"" + (p.name + "\" vector-effect=\"non-scaling-stroke\" class=\"st0\" ")))))));
   return head + (dSpec + "/>\n</g>\n");
 }
 
@@ -895,8 +899,9 @@ function dividerToSVG(dr) {
   var panelPathsH = List.mapi((function (i, pan) {
           return panelToPath(pan, dr.spec, 10.0, 10.0 + i * 72.0 * (dr.spec.height + 0.125), dr.spec.dipSizeH);
         }), dr.horiz);
+  var offset = (List.length(dr.horiz) + 0.2) * 72.0 * (dr.spec.height + 0.125);
   var panelPathsV = List.mapi((function (i, pan) {
-          return panelToPath(pan, dr.spec, 10.0, 10.0 + i * 72.0 * (dr.spec.height + 0.125), dr.spec.dipSizeV);
+          return panelToPath(pan, dr.spec, 10.0, 10.0 + i * 72.0 * (dr.spec.height + 0.125) + offset, dr.spec.dipSizeV);
         }), dr.vert);
   var back = List.fold_right((function (s1, s2) {
           return s1 + s2;
@@ -956,6 +961,7 @@ export {
   boxToPathD ,
   boxListToPathD ,
   boxListToPath ,
+  text ,
   panelToPath ,
   dividerToSVG ,
   stringOfDivider ,

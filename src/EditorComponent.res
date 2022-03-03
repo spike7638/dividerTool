@@ -72,20 +72,6 @@ let make = (~state: Types.state , ~dispatch: Store.action => unit) => {
   let id = "divider-editor"
 
   if (false) { dispatch(Store.NoOp)} else {()} // placed here to silence warnings about dispatch being unused.
- 
-//let setup = Editor.setup;
-// (env) => {
-//   Env.size(~width=200, ~height=200, env);
-// };
-
-//let draw = Editor.draw;
-// (_state, env) => {
-//   Draw.background(Constants.red, env);
-//   Draw.fill(Constants.green, env);
-//   Draw.rect(~pos=(50, 50), ~width=100, ~height=100, env)
-// };
-
-
 //==============================================================================================
  
 
@@ -339,7 +325,7 @@ let setup: glEnvT => stateT =
     Env.size(~width=displayWidth, ~height=displayHeight, env);
     let d = buildGeom(state); 
 
-    {
+    let q = {
       p: Base,
       dragging: false,
       dragStart: {xi:0, yi:0},
@@ -350,7 +336,8 @@ let setup: glEnvT => stateT =
       oldStrokes: list{},
       dg: d,
     }; 
-  /// XXX need to copy stroke-list to "ss"
+    dataCarrier.strokes = q.strokeList;
+    q
   }; 
 
 let drawFrame = (s, env) => {
@@ -416,7 +403,7 @@ let drawStrokes = (state, env) => {
     }, 
     state.strokeList));
   };
-  if (true) {
+  if (false) {
     showStrokes("Old", state.oldStrokes, (380,20), env);
     showStrokes("New", state.strokeList, (640, 20), env);
   }
