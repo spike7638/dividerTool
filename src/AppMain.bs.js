@@ -6,9 +6,6 @@ import * as Controls$DividerEditor from "./Controls.bs.js";
 import * as SVGDisplay$DividerEditor from "./SVGDisplay.bs.js";
 import * as EditorComponent$DividerEditor from "./EditorComponent.bs.js";
 
-import './App.css';
-;
-
 function AppMain(Props) {
   var match = React.useReducer(Store$DividerEditor.reducer, Store$DividerEditor.initialState);
   var dispatch = match[1];
@@ -16,13 +13,13 @@ function AppMain(Props) {
   return React.createElement("div", undefined, React.createElement(Controls$DividerEditor.make, {
                   state: state,
                   dispatch: dispatch
-                }), React.createElement("hr", undefined), React.createElement(EditorComponent$DividerEditor.make, {
+                }), React.createElement("hr", undefined), React.createElement("pre", undefined, "Click and drag from dot to dot to draw horizontal or vertical panels in your divider. Use shift-click near a line segment to delete it. \nThe tan outline shows the actual region occupied by the divider, and may not extend all the way to the rightmost or topmost set of dots. \nYou may still draw a line to these 'outer' dots, and it will be trimmed to an appropriate length."), React.createElement(EditorComponent$DividerEditor.make, {
                   state: state,
                   dispatch: dispatch
-                }), React.createElement("hr", undefined), React.createElement("hr", undefined), React.createElement(SVGDisplay$DividerEditor.make, {
+                }), React.createElement("hr", undefined), React.createElement("p", undefined, "A visualization of the SVG file produced by the drawing-editor. The actual cut-lines, .001 thick, are drawn in pure red; they're overdrawn\n\n      in .01-thick blue to make them easy to see here, and you should therefore set your laser-cutter to NOT do any cutting for blue strokes. Labels for each\n      panel are drawn in pure green. If you want your panels labelled, you could set your laser cutter to do a very faint 'fill' for pure-green items, which you \n      could then sand off. Because the pieces are simply stacked up, you will probably want to open the SVG file in some editor like Inkscape or Adobe Illustrator\n      to place them more suitably for your stock."), React.createElement(SVGDisplay$DividerEditor.make, {
                   state: state,
                   dispatch: dispatch
-                }), React.createElement("hr", undefined));
+                }));
 }
 
 var make = AppMain;
@@ -31,4 +28,4 @@ export {
   make ,
   
 }
-/*  Not a pure module */
+/* react Not a pure module */

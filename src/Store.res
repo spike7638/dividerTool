@@ -5,7 +5,7 @@ open Types
 let initialState: state = {
   data: {counter:100, thickness: 0.198, width: 5.0, depth: 4.0, height: 1.5, 
   includeEnclosure: true, dipPercentageV: 70.0, dipPercentageH: 0.0, spacing: 0.5},
-  svg: "", drawing: list{},
+  svg: "", drawing: list{}, newStart: true
 }
 
 type action =
@@ -20,12 +20,20 @@ type action =
   | ChangeDipPercentageV(float)
   | ChangeSVG(string)
   | ChangeDrawing(drawing)
+  | ChangeStart(bool)
   | NoOp
 
 let updateCounter: (state, int) => state = (s:state, count: int) => {
   {
     ...s,
     data: {...s.data, counter: count,}, 
+  }
+}
+
+let updateStart: (state, bool) => state = (s:state, start: bool) => {
+  {
+    ...s,
+    newStart: start, 
   }
 }
 let updateThickness: (state, float) => state = (s:state, t: float) => {
@@ -113,6 +121,7 @@ let reducer = (state: state, action: action) => {
   | ChangeDipPercentageV(t) => updateDipPercentageV(state, t)
   | ChangeSVG(t) => updateSVGContents(state, t)
   | ChangeDrawing(t) => updateDrawing(state, t)
+  | ChangeStart(t) => updateStart(state, t)
   | NoOp => state
   }
 }

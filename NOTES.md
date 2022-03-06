@@ -10,8 +10,8 @@ because "yarn start" said "react-scripts not found"
 =========================================
 
 .Whenever the drawing changes, update the drawing-state [20 min]
-** .extract the drawing from the editor when the SVG button is pressed,
-** .put a printed version of it in the SVG window. [20 min]
+.extract the drawing from the editor when the SVG button is pressed,
+.put a printed version of it in the SVG window. [20 min]
 .Convert that extracted drawing into SVG [3 hour]
 .* Simplify initial settings for testing
 .* Add an SVG HTML element "block" to display the SVG directly
@@ -22,10 +22,23 @@ x* ?Turn off "outer box" for initial testing
 .* Insert linebreaks in SVG!
 .* Adjust SVG TEXT display to limited 5-line height (currently applied to SVG drawing!)
 .* Fix the code so that horizontal strokes use "L" instead of "U", and vice-versa
+.* Generate blue, thicker lines along with red, thin, lines, and green panel-labels; add grouping.
+.* Need to fix the geometry calculations for a 900 x 900 display, and an 8 x 7 grid with 0.5" spacing the underlying drawer-shape is drawn too large
+.* RefreshSVG works, but makes all the current edges go away!
+.* Write up an intent/instructions page
+.* Add a "ReStart" button to remove all lines except the frame.
+.* Go back to the start where we draw spans and always swap ends to make them ordered spans, so the data structure has the property we need later
+.* Add in "dips"!
+.* Print current lists of features to the js log
+.* delete everything and try rebuilding from scratch
+.* write a comparator for span-sorting that doesn't care about colors, so that we can use randomColors if we want and not break anything.
 
-* Generate blue, thicker lines along with red, thin, lines, and green panel-labels; add grouping.
-* Need to fix the geometry calculations for a 900 x 900 display, and an 8 x 7 grid with 0.5" spacing the underlying drawer-shape is drawn too large
 
-* Clean up all code to remove leftover bits, document what's going on, etc. 
+* why does RefreshSVG cause the outline to re-appear?
+  * it'd be nice to trigger an update to the svg stuff at the very start. 
+
+* Clean up all code to remove leftover cruft 
+* try moving the "bundle" to cs.brown.edu to see whether that can work
+
+? document what's going on, etc. 
 * Figure out how to clean up the build process so that it all works properly. Switch everything to rescript? 
-* it'd be nice to trigger an update to the svg stuff at the very start. 

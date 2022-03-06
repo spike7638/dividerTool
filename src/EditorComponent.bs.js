@@ -19,6 +19,11 @@ function getStrokes(param) {
   return dataCarrier.strokes;
 }
 
+function setStrokes(ls) {
+  dataCarrier.strokes = ls;
+  
+}
+
 function toString(s) {
   return "p1: " + String(s.sp.p1.xi) + ", " + String(s.sp.p1.yi) + "; p2: " + String(s.sp.p2.xi) + ", " + String(s.sp.p2.yi);
 }
@@ -108,11 +113,11 @@ function EditorComponent(Props) {
                   hd: {
                     sp: {
                       p1: {
-                        xi: right,
+                        xi: 0,
                         yi: 0
                       },
                       p2: {
-                        xi: 0,
+                        xi: right,
                         yi: 0
                       }
                     },
@@ -291,10 +296,11 @@ function EditorComponent(Props) {
     var extendedHeight = dotGap * Math.ceil(frameHeight / dotGap);
     var ratio = Caml.caml_float_min(860 / extendedWidth, 860 / extendedHeight);
     var dotSpacing = ratio * dotGap | 0;
+    var rratio = dotSpacing / dotGap;
     var wCount = 1 + (Math.ceil(frameWidth / dotGap) | 0) | 0;
     var hCount = 1 + (Math.ceil(frameHeight / dotGap) | 0) | 0;
-    var frameHeightPixels = Math.floor(ratio * frameHeight) | 0;
-    var frameWidthPixels = Math.floor(ratio * frameWidth) | 0;
+    var frameHeightPixels = Math.floor(rratio * frameHeight) | 0;
+    var frameWidthPixels = Math.floor(rratio * frameWidth) | 0;
     return {
             wCount: wCount,
             hCount: hCount,
@@ -303,10 +309,14 @@ function EditorComponent(Props) {
             frameWidthPixels: frameWidthPixels
           };
   };
+  var strokeCompare = function (s1, s2) {
+    return Caml_obj.caml_compare(s1.sp, s2.sp);
+  };
   var setup = function (env) {
     Reprocessing_Draw.strokeWeight(2, env);
     Reprocessing_Env.size(900, 900, env);
     var d = buildGeom(state);
+    var newStrokeList = List.sort_uniq(strokeCompare, state.newStart ? makeOuterStrokes(d) : state.drawing);
     var q_dragStart = {
       xi: 0,
       yi: 0
@@ -315,7 +325,6 @@ function EditorComponent(Props) {
       xi: 0,
       yi: 0
     };
-    var q_strokeList = makeOuterStrokes(d);
     var q_dots = makeDots(d);
     var q = {
       p: /* Base */0,
@@ -323,12 +332,12 @@ function EditorComponent(Props) {
       dragStart: q_dragStart,
       dragNow: q_dragNow,
       strokeColor: basicStrokeColor,
-      strokeList: q_strokeList,
+      strokeList: newStrokeList,
       dots: q_dots,
       oldStrokes: /* [] */0,
       dg: d
     };
-    dataCarrier.strokes = q_strokeList;
+    dataCarrier.strokes = newStrokeList;
     return q;
   };
   var drawFrame = function (s, env) {
@@ -378,7 +387,6 @@ function EditorComponent(Props) {
     var x0 = state.dg.frameWidthPixels + 20 | 0;
     var y0 = 900 - (state.dg.frameHeightPixels + 20 | 0) | 0;
     List.map((function (s) {
-            Reprocessing_Draw.stroke(s.color, env);
             var match = gToW(state, s.sp.p1);
             var p1_0 = Caml.caml_float_min(match[0], x0);
             var p1_1 = Caml.caml_float_max(match[1], y0);
@@ -475,7 +483,7 @@ function EditorComponent(Props) {
             RE_EXN_ID: "Match_failure",
             _1: [
               "EditorComponent.res",
-              477,
+              453,
               12
             ],
             Error: new Error()
@@ -524,6 +532,29 @@ function EditorComponent(Props) {
       return match[0];
     }
     
+  };
+  var newStroke = function (_p1, _p2) {
+    while(true) {
+      var p2 = _p2;
+      var p1 = _p1;
+      if (p1.xi > p2.xi) {
+        _p2 = p1;
+        _p1 = p2;
+        continue ;
+      }
+      if (!(p1.xi === p2.xi && p1.yi > p2.yi)) {
+        return {
+                sp: {
+                  p1: p1,
+                  p2: p2
+                },
+                color: basicStrokeColor
+              };
+      }
+      _p2 = p1;
+      _p1 = p2;
+      continue ;
+    };
   };
   var draw = function (state, env) {
     Reprocessing_Draw.background(bgColor, env);
@@ -588,13 +619,7 @@ function EditorComponent(Props) {
     var newStrokeList;
     if (state.p === /* Dragging */5 && newPhase !== /* Dragging */5) {
       newStrokeList = clean({
-            hd: {
-              sp: {
-                p1: state.dragStart,
-                p2: align(state.dragStart, loc)
-              },
-              color: rColor(undefined)
-            },
+            hd: newStroke(state.dragStart, align(state.dragStart, loc)),
             tl: state.strokeList
           }, env);
     } else if (state.p === /* DelStart */2 && newPhase === /* DelDone */3) {
@@ -612,7 +637,7 @@ function EditorComponent(Props) {
     } else {
       newStrokeList = state.strokeList;
     }
-    dataCarrier.strokes = Caml_obj.caml_notequal(newStrokeList, state.strokeList) ? newStrokeList : dataCarrier.strokes;
+    dataCarrier.strokes = Caml_obj.caml_notequal(newStrokeList, dataCarrier.strokes) ? newStrokeList : dataCarrier.strokes;
     return {
             p: newPhase,
             dragging: press ? true : (
@@ -642,6 +667,7 @@ var make = EditorComponent;
 export {
   dataCarrier ,
   getStrokes ,
+  setStrokes ,
   toString ,
   stringOfStrokes ,
   make ,

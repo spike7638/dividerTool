@@ -392,6 +392,33 @@ let stringOfStrokeList:  (list(stroke), settings) => string = (sl, settings) => 
 //   drawing: list<stroke>,
 // }
 
+// type panelGeom = list(feature); 
+
+// type panel = {
+//   isHorizontal: bool,
+//   geom: panelGeom,
+//   name: string, 
+// }; /* horiz panels never contains CUs or XUs; vert panels never contain CLs or XLs */
+
+// type divider = {
+//   horiz: list(panel), /* horiz panels never contains CUs or XUs */
+//   vert: list(panel), /* vert panels never contain CLs or XLs   */
+//   spec: specs,
+// };
+
+let stringOfFeatureList = fl => 
+     List.fold_right((x,s) => (string_of_feature(x)++ " ") ++ s, fl, "");
+
+let dividerToString: divider => string = d => {
+let s1 = "specs: skipped\n";
+let s2 = "\nHoriz:\n";
+let psMap = (p, s) => (p.name ++ ((p.isHorizontal)?" H ": " V ") ++ stringOfFeatureList(p.geom)) ++ s;
+let s3 = List.fold_right (psMap, d.horiz, "");
+let s4 = "\nVert:\n";
+let s5 = List.fold_right(psMap, d.vert, "");
+//s1 ++ s2 ++ s4 ++ "\n"
+s1 ++ s2 ++ s3 ++ s4 ++ s5 ++ "\n"
+}  
 
 let drawingToDivider: (Types.state, drawing) => divider = (st, drawing) => {
   let settings = st.data;
@@ -414,10 +441,14 @@ let drawingToDivider: (Types.state, drawing) => divider = (st, drawing) => {
   let horiz0 = List.mapi( (i, fl) => {geom:fl, isHorizontal: true, name:"H"++string_of_int(i)}, dH);
   let vert0 = List.mapi( (i, fl) => {geom:fl, isHorizontal: false, name:"V"++string_of_int(i)}, dV);
   // assemble horiz, vert, and specs into a return value. 
-  {horiz:horiz0, vert:vert0, spec:sp0}  
+  let result = {horiz:horiz0, vert:vert0, spec:sp0};  
+  let ds = dividerToString(result);
+  Js.log(ds);
+  //if (true) {Js.log(ds)} else {};
+  result; 
 } 
 
-  
+    
 
 //============OLD CODE ====//
 
@@ -570,21 +601,21 @@ let stringOfBox: boxSpec => string =
     let (x, y) = bs.lowerLeft;
     "(" ++ sof(x) ++ ", " ++ sof(y) ++ "); w = " ++ sof(w) ++ ", h = " ++ sof(h) ++ "\n";
   };
-
+  
 /*
  ** at location x, start a "dip" of depth "dipSize", starting at
- ** x + dipSize, and ending at x + f - dipSize, which should be greater
- ** or else there's an error.
+ ** x + dipSize, and ending at x + f - dipSize, if there's room; if not, return an empty list of "boxes"
  */
-let dip: (float, float, float, float) => list(boxSpec) =
+let dipGap: (float, float, float, float) => list(boxSpec) =
   (x, f, height, dipSize) => {
     let xs = x +. dipSize;
     let xf = x +. f -. dipSize;
-    let xs = x +. 0.5;
-    let xf = x +. f -. 0.5;
+    let xs = x +. 0.25;
+    let xf = x +. f -. 0.25;
     let w = xf -. xs;
-    if (w < 4.0 *. dipSize) {
-      failwith("Impossible dip length!");
+    let q = min(0.375, dipSize)
+    if (w < 4.0 *. q) {
+      []; // simply draw no dip! (formerly: failwith("Impossible dip length!");)
     } else {
       [
         {
@@ -611,10 +642,11 @@ let rec allBoxesHelper: (panelGeom, specs, float, bool) => list(boxSpec) =
       tabSlots(x, S(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
     | [T(f), ...rst] =>
       tabBoxes(x, T(f), sp) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
-    | [G(f), ...rst] => allBoxesHelper(rst, sp, x +. f, isHorizontal)
+    | [G(f), ...rst] =>       dipGap(x, f, sp.height, isHorizontal? sp.dipSizeH:sp.dipSizeV) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+//allBoxesHelper(rst, sp, x +. f, isHorizontal)
     | [D(f), ...rst] =>
       //      print_string("making a dip!");
-      dip(x, f, sp.height, isHorizontal? sp.dipSizeH:sp.dipSizeV) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
+      dipGap(x, f, sp.height, isHorizontal? sp.dipSizeH:sp.dipSizeV) @ allBoxesHelper(rst, sp, x +. f, isHorizontal)
     };
 
 let allBoxes: (panelGeom, specs, bool) => list(boxSpec) =
@@ -638,30 +670,31 @@ let boxToPathD: (boxSpec, specs, float) => string =
       ++ textOfPoint(xm, ym)
       ++ "T "
       ++ textOfPoint(xt, yt)
-      ++ "M "
-      ++ textOfPoint(xf, yf);
+     // ++ "M "
+     // ++ textOfPoint(xf, yf);
     };
 
     if (bs.isDip) {
       let d = dipSize;
+      let q = min(d, 0.375); // radius to use for dip-bend
       let ((xs, _), ys) = (bs.lowerLeft, bs.height);
-      let (xq, yq) = (xs +. 0.875 *. d, ys);
-      let (xm, ym) = (xs +. d, ys -. d /. 2.0);
-      let (xt, yt) = (xs +. 2. *. d, ys -. d);
-      let (xf, yf) = (xs +. 2. *. d, ys -. d);
+      let (xq, yq) = (xs +. q, ys);
+      let (xm, ym) = (xs +. q, ys -. d /. 2.0);
+      let (xt, yt) = (xs +. 2. *. q, ys -. d);
+      let (xf, yf) = (xs +. 2. *. q, ys -. d);
       let st1 = helper(xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) ++ " ";
 
       let (xs2, ys2) = (fst(bs.lowerLeft) +. bs.width, bs.height);
-      let (xq2, yq2) = (xs2 -. 0.875 *. d, ys2);
-      let (xm2, ym2) = (xs2 -. d, ys2 -. d /. 2.0);
-      let (xt2, yt2) = (xs2 -. 2. *. d, ys2 -. d);
-      let (xf2, yf2) = (xs2 -. 2. *. d, ys2 -. d);
+      let (xq2, yq2) = (xs2 -. q, ys2);
+      let (xm2, ym2) = (xs2 -. q, ys2 -. d /. 2.0);
+      let (xt2, yt2) = (xs2 -. 2. *. q, ys2 -. d);
+      let (xf2, yf2) = (xs2 -. 2. *. q, ys2 -. d);
 
       let st2 = "M " ++ textOfPoint(xf, yf) ++ "L " ++ textOfPoint(xf2, yf2);
       let st3 =
         helper(xs2, ys2, xq2, yq2, xm2, ym2, xt2, yt2, xf2, yf2) ++ " ";
-
-      st1 ++ st2 ++ st3;
+ 
+      st1 ++  st2 ++ st3;
       // <path d="M200,300 Q375,300 400,400 T600,500 M 600,500 L 800,500"
     } else {
       let hs = sof(72.0 *. bs.height);
@@ -699,10 +732,10 @@ let boxListToPath: (list(boxSpec), specs, float) => string =
     let tail = "/>\n";
     head ++ dSpec ++ tail;
   };
-
+ 
 let text= (x:float, y:float, s:string) => 
-"\n<text x=\"" ++ string_of_float(x) ++ 
-   "\" y=\"" ++ string_of_float(y)  ++"\" fill=\"#00FF00\" >" ++ s ++ "</text>\n";
+"\n<text x=\"" ++ Js.Float.toString(x) ++ 
+   "\" y=\"" ++ Js.Float.toString(y)  ++"\" fill=\"#00FF00\" >" ++ s ++ "</text>\n";
 
 let panelToPath: (panel, specs, float, float, float) => string =
   (p, sp, x, y, dipSize) => { 
@@ -726,7 +759,10 @@ let panelToPath: (panel, specs, float, float, float) => string =
  
 let dividerToSVG: divider => string =
   dr => {
-    let strokeWidth = "7.200000e-01";
+    let strokeWidth1 = "7.200000e-02";
+    let color1= "#FF0000"
+    let strokeWidth2 = "7.200000e-01";
+    let color2= "#0000FF"
     let panelCount = List.length(dr.horiz) + List.length(dr.vert);
     let panelWidth =
       int_of_float(
@@ -742,8 +778,8 @@ let dividerToSVG: divider => string =
       );
     let windowHeight =
       int_of_float(
-        20.0 +. float_of_int(panelCount) *. 72.0 *. (dr.spec.height +. 0.125),
-      );
+        40.0 +. float_of_int(panelCount) *. 72.0 *. (dr.spec.height +. 0.125),
+      );  
     
     let shapeString =
       "0 0 "
@@ -759,11 +795,18 @@ let dividerToSVG: divider => string =
       ++ shapeString
       ++ " \" style=\"enable-background:new "
       ++ shapeString
-      ++ ";\" xml:space=\"preserve\">"
-      ++ "<style type=\"text/css\">\n"
-      ++ ".st0{fill:none;stroke:#FF0000;stroke-width:"
-      ++ strokeWidth
+      ++ ";\" xml:space=\"preserve\">\n";
+    let styleString1 = 
+      "<style type=\"text/css\">\n"
+      ++ ".st0{fill:none;stroke:" ++ color1 ++ ";stroke-width:"
+      ++ strokeWidth1
       ++ ";stroke-linecap:round;stroke-miterlimit:288;}\n</style>\n";
+    let styleString2 = 
+      "<style type=\"text/css\">\n"
+       ++ ".st0{fill:none;stroke:" ++ color2 ++ ";stroke-width:"
+      ++ strokeWidth2
+      ++ ";stroke-linecap:round;stroke-miterlimit:288;}\n</style>\n";
+
     let svgBack = "</svg>\n";
 
     let panelPathsH =
@@ -778,7 +821,7 @@ let dividerToSVG: divider => string =
           ),
         dr.horiz,
       );
-  
+   
     let offset = (float_of_int(List.length(dr.horiz))+.0.2) *. 72.0 *. (dr.spec.height +. 0.125);
     let panelPathsV =
       List.mapi(
@@ -793,10 +836,10 @@ let dividerToSVG: divider => string =
         dr.vert,
       ); 
 
-    let back = List.fold_right((s1, s2) => s1 ++ s2, List.append(panelPathsH, panelPathsV), svgBack);
-    svgFront ++ back;
-  };
-
+    let back = List.fold_right((s1, s2) => s1 ++ s2, List.append(panelPathsH, panelPathsV), "");
+    svgFront ++ styleString1 ++ back ++ styleString2 ++ back ++ svgBack;
+  }; 
+ 
 // let show: panel => unit =
 //   p => {
 //     print_string(p.name ++ ": ");

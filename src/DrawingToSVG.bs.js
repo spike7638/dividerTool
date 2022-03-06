@@ -491,6 +491,23 @@ function stringOfStrokeList(sl, settings) {
               }), c, "");
 }
 
+function stringOfFeatureList(fl) {
+  return List.fold_right((function (x, s) {
+                return string_of_feature(x) + " " + s;
+              }), fl, "");
+}
+
+function dividerToString(d) {
+  var psMap = function (p, s) {
+    return p.name + ((
+              p.isHorizontal ? " H " : " V "
+            ) + stringOfFeatureList(p.geom)) + s;
+  };
+  var s3 = List.fold_right(psMap, d.horiz, "");
+  var s5 = List.fold_right(psMap, d.vert, "");
+  return "specs: skipped\n\nHoriz:\n" + (s3 + ("\nVert:\n" + (s5 + "\n")));
+}
+
 function drawingToDivider(st, drawing) {
   var settings = st.data;
   var d1 = List.map((function (s) {
@@ -527,11 +544,14 @@ function drawingToDivider(st, drawing) {
                   name: "V" + String(i)
                 };
         }), match[1]);
-  return {
-          horiz: horiz0,
-          vert: vert0,
-          spec: sp0
-        };
+  var result = {
+    horiz: horiz0,
+    vert: vert0,
+    spec: sp0
+  };
+  var ds = dividerToString(result);
+  console.log(ds);
+  return result;
 }
 
 function sof(prim) {
@@ -727,12 +747,13 @@ function stringOfBox(bs) {
   return "(" + (match[0].toString() + (", " + (match[1].toString() + ("); w = " + (w.toString() + (", h = " + (h.toString() + "\n")))))));
 }
 
-function dip(x, f, height, dipSize) {
-  var xs = x + 0.5;
-  var xf = x + f - 0.5;
+function dipGap(x, f, height, dipSize) {
+  var xs = x + 0.25;
+  var xf = x + f - 0.25;
   var w = xf - xs;
-  if (w < 4.0 * dipSize) {
-    return Pervasives.failwith("Impossible dip length!");
+  var q = 0.375 < dipSize ? 0.375 : dipSize;
+  if (w < 4.0 * q) {
+    return /* [] */0;
   } else {
     return {
             hd: {
@@ -749,61 +770,55 @@ function dip(x, f, height, dipSize) {
   }
 }
 
-function allBoxesHelper(_panel, sp, _x, isHorizontal) {
-  while(true) {
-    var x = _x;
-    var panel = _panel;
-    if (!panel) {
-      return /* [] */0;
-    }
-    var f = panel.hd;
-    switch (f.TAG | 0) {
-      case /* CU */0 :
-          var f$1 = f._0;
-          return Pervasives.$at(pinL(x, {
-                          TAG: /* CU */0,
-                          _0: f$1
-                        }, sp), allBoxesHelper(panel.tl, sp, x + f$1, isHorizontal));
-      case /* CL */1 :
-          var f$2 = f._0;
-          return Pervasives.$at(pinU(x, {
-                          TAG: /* CL */1,
-                          _0: f$2
-                        }, sp), allBoxesHelper(panel.tl, sp, x + f$2, isHorizontal));
-      case /* XU */2 :
-          var f$3 = f._0;
-          return Pervasives.$at(slitL(x, {
-                          TAG: /* XU */2,
-                          _0: f$3
-                        }, sp), allBoxesHelper(panel.tl, sp, x + f$3, isHorizontal));
-      case /* XL */3 :
-          var f$4 = f._0;
-          return Pervasives.$at(slitU(x, {
-                          TAG: /* XL */3,
-                          _0: f$4
-                        }, sp), allBoxesHelper(panel.tl, sp, x + f$4, isHorizontal));
-      case /* S */4 :
-          var f$5 = f._0;
-          return Pervasives.$at(tabSlots(x, {
-                          TAG: /* S */4,
-                          _0: f$5
-                        }, sp), allBoxesHelper(panel.tl, sp, x + f$5, isHorizontal));
-      case /* T */5 :
-          var f$6 = f._0;
-          return Pervasives.$at(tabBoxes(x, {
-                          TAG: /* T */5,
-                          _0: f$6
-                        }, sp), allBoxesHelper(panel.tl, sp, x + f$6, isHorizontal));
-      case /* G */6 :
-          _x = x + f._0;
-          _panel = panel.tl;
-          continue ;
-      case /* D */7 :
-          var f$7 = f._0;
-          return Pervasives.$at(dip(x, f$7, sp.height, isHorizontal ? sp.dipSizeH : sp.dipSizeV), allBoxesHelper(panel.tl, sp, x + f$7, isHorizontal));
-      
-    }
-  };
+function allBoxesHelper(panel, sp, x, isHorizontal) {
+  if (!panel) {
+    return /* [] */0;
+  }
+  var f = panel.hd;
+  switch (f.TAG | 0) {
+    case /* CU */0 :
+        var f$1 = f._0;
+        return Pervasives.$at(pinL(x, {
+                        TAG: /* CU */0,
+                        _0: f$1
+                      }, sp), allBoxesHelper(panel.tl, sp, x + f$1, isHorizontal));
+    case /* CL */1 :
+        var f$2 = f._0;
+        return Pervasives.$at(pinU(x, {
+                        TAG: /* CL */1,
+                        _0: f$2
+                      }, sp), allBoxesHelper(panel.tl, sp, x + f$2, isHorizontal));
+    case /* XU */2 :
+        var f$3 = f._0;
+        return Pervasives.$at(slitL(x, {
+                        TAG: /* XU */2,
+                        _0: f$3
+                      }, sp), allBoxesHelper(panel.tl, sp, x + f$3, isHorizontal));
+    case /* XL */3 :
+        var f$4 = f._0;
+        return Pervasives.$at(slitU(x, {
+                        TAG: /* XL */3,
+                        _0: f$4
+                      }, sp), allBoxesHelper(panel.tl, sp, x + f$4, isHorizontal));
+    case /* S */4 :
+        var f$5 = f._0;
+        return Pervasives.$at(tabSlots(x, {
+                        TAG: /* S */4,
+                        _0: f$5
+                      }, sp), allBoxesHelper(panel.tl, sp, x + f$5, isHorizontal));
+    case /* T */5 :
+        var f$6 = f._0;
+        return Pervasives.$at(tabBoxes(x, {
+                        TAG: /* T */5,
+                        _0: f$6
+                      }, sp), allBoxesHelper(panel.tl, sp, x + f$6, isHorizontal));
+    case /* G */6 :
+    case /* D */7 :
+        break;
+    
+  }
+  var f$7 = f._0;
+  return Pervasives.$at(dipGap(x, f$7, sp.height, isHorizontal ? sp.dipSizeH : sp.dipSizeV), allBoxesHelper(panel.tl, sp, x + f$7, isHorizontal));
 }
 
 function allBoxes(panel, sp, isHorizontal) {
@@ -823,28 +838,29 @@ function ps(name, x, y) {
 
 function boxToPathD(bs, sp, dipSize) {
   var helper = function (xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) {
-    return "M " + (textOfPoint(xs, ys) + ("Q " + (textOfPoint(xq, yq) + ("  " + (textOfPoint(xm, ym) + ("T " + (textOfPoint(xt, yt) + ("M " + textOfPoint(xf, yf)))))))));
+    return "M " + (textOfPoint(xs, ys) + ("Q " + (textOfPoint(xq, yq) + ("  " + (textOfPoint(xm, ym) + ("T " + textOfPoint(xt, yt)))))));
   };
   if (bs.isDip) {
+    var q = dipSize < 0.375 ? dipSize : 0.375;
     var match = bs.lowerLeft;
     var ys = bs.height;
     var xs = match[0];
-    var xq = xs + 0.875 * dipSize;
-    var xm = xs + dipSize;
+    var xq = xs + q;
+    var xm = xs + q;
     var ym = ys - dipSize / 2.0;
-    var xt = xs + 2 * dipSize;
+    var xt = xs + 2 * q;
     var yt = ys - dipSize;
-    var xf = xs + 2 * dipSize;
+    var xf = xs + 2 * q;
     var yf = ys - dipSize;
     var st1 = helper(xs, ys, xq, ys, xm, ym, xt, yt, xf, yf) + " ";
     var xs2 = bs.lowerLeft[0] + bs.width;
     var ys2 = bs.height;
-    var xq2 = xs2 - 0.875 * dipSize;
-    var xm2 = xs2 - dipSize;
+    var xq2 = xs2 - q;
+    var xm2 = xs2 - q;
     var ym2 = ys2 - dipSize / 2.0;
-    var xt2 = xs2 - 2 * dipSize;
+    var xt2 = xs2 - 2 * q;
     var yt2 = ys2 - dipSize;
-    var xf2 = xs2 - 2 * dipSize;
+    var xf2 = xs2 - 2 * q;
     var yf2 = ys2 - dipSize;
     var st2 = "M " + (textOfPoint(xf, yf) + ("L " + textOfPoint(xf2, yf2)));
     var st3 = helper(xs2, ys2, xq2, ys2, xm2, ym2, xt2, yt2, xf2, yf2) + " ";
@@ -872,7 +888,7 @@ function boxListToPath(bList, sp, dipSize) {
 }
 
 function text(x, y, s) {
-  return "\n<text x=\"" + (Pervasives.string_of_float(x) + ("\" y=\"" + (Pervasives.string_of_float(y) + ("\" fill=\"#00FF00\" >" + (s + "</text>\n")))));
+  return "\n<text x=\"" + (x.toString() + ("\" y=\"" + (y.toString() + ("\" fill=\"#00FF00\" >" + (s + "</text>\n")))));
 }
 
 function panelToPath(p, sp, x, y, dipSize) {
@@ -893,9 +909,11 @@ function dividerToSVG(dr) {
         }), 0.0, List.map((function (p) {
               return panelLength(p.geom);
             }), List.append(dr.horiz, dr.vert))) | 0;
-  var windowHeight = 20.0 + panelCount * 72.0 * (dr.spec.height + 0.125) | 0;
+  var windowHeight = 40.0 + panelCount * 72.0 * (dr.spec.height + 0.125) | 0;
   var shapeString = "0 0 " + (String(20 + panelWidth | 0) + (" " + String(windowHeight)));
-  var svgFront = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- Generator: Adobe Illustrator 24.1.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\n<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" \nx=\"0px\" y=\"0px\" viewBox=\"" + (shapeString + (" \" style=\"enable-background:new " + (shapeString + ";\" xml:space=\"preserve\"><style type=\"text/css\">\n.st0{fill:none;stroke:#FF0000;stroke-width:7.200000e-01;stroke-linecap:round;stroke-miterlimit:288;}\n</style>\n")));
+  var svgFront = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- Generator: Adobe Illustrator 24.1.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\n<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" \nx=\"0px\" y=\"0px\" viewBox=\"" + (shapeString + (" \" style=\"enable-background:new " + (shapeString + ";\" xml:space=\"preserve\">\n")));
+  var styleString1 = "<style type=\"text/css\">\n.st0{fill:none;stroke:#FF0000;stroke-width:7.200000e-02;stroke-linecap:round;stroke-miterlimit:288;}\n</style>\n";
+  var styleString2 = "<style type=\"text/css\">\n.st0{fill:none;stroke:#0000FF;stroke-width:7.200000e-01;stroke-linecap:round;stroke-miterlimit:288;}\n</style>\n";
   var panelPathsH = List.mapi((function (i, pan) {
           return panelToPath(pan, dr.spec, 10.0, 10.0 + i * 72.0 * (dr.spec.height + 0.125), dr.spec.dipSizeH);
         }), dr.horiz);
@@ -905,8 +923,8 @@ function dividerToSVG(dr) {
         }), dr.vert);
   var back = List.fold_right((function (s1, s2) {
           return s1 + s2;
-        }), List.append(panelPathsH, panelPathsV), "</svg>\n");
-  return svgFront + back;
+        }), List.append(panelPathsH, panelPathsV), "");
+  return svgFront + (styleString1 + (back + (styleString2 + (back + "</svg>\n"))));
 }
 
 var stringOfDivider = dividerToSVG;
@@ -939,6 +957,8 @@ export {
   spanList_of_strokeList ,
   converter ,
   stringOfStrokeList ,
+  stringOfFeatureList ,
+  dividerToString ,
   drawingToDivider ,
   sof ,
   checkPanelhelper ,
@@ -953,7 +973,7 @@ export {
   slitL ,
   slitU ,
   stringOfBox ,
-  dip ,
+  dipGap ,
   allBoxesHelper ,
   allBoxes ,
   textOfPoint ,

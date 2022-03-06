@@ -2,7 +2,6 @@ open Reprocessing;
 open Reprocessing_Utils;
 open Types
 
-
 /* Store data structures 
 type settings = {
   counter: int, // add more later
@@ -20,20 +19,15 @@ type state = {
   data: settings,
   svg: string,
   drawing: list<stroke>,
-
-// ===== end of Store data structures
 */
 // =========================
 // special mutable structure to preserve the stroke-list for use by other parts of the code
-
-
-type sl = list<stroke>;
-
 type ss = {mutable strokes: list<stroke>};
+
 let dataCarrier:ss = {strokes: list{}};
 let getStrokes:unit => drawing = () => dataCarrier.strokes;
+let setStrokes:list<stroke> => unit = ls => {dataCarrier.strokes = ls};
 // =========================
-
 
 type phase = Base | Shift | DelStart | DelDone | Neutral | Dragging
 type drawingGeometry = {wCount: int, hCount:int, dotSpacing:int, frameHeightPixels:int, frameWidthPixels:int};
@@ -50,40 +44,32 @@ type stateT = {
   dg: drawingGeometry,
 };
 
-
-
 let toString: stroke => string = s => {
-  let soi = string_of_int; 
-  "p1: " ++ soi(s.sp.p1.xi) ++ ", " ++ soi(s.sp.p1.yi) ++ "; " ++
-  "p2: " ++ soi(s.sp.p2.xi) ++ ", " ++ soi(s.sp.p2.yi)
+  "p1: " ++ string_of_int(s.sp.p1.xi) ++ ", " ++ string_of_int(s.sp.p1.yi) ++ "; " ++
+  "p2: " ++ string_of_int(s.sp.p2.xi) ++ ", " ++ string_of_int(s.sp.p2.yi)
 }
 
 let rec stringOfStrokes = (label, strokes) => {
   switch(strokes){
-    | list{} =>   label++"\n---\n"
+    | list{} => label ++ "\n---\n"
     | list{hd, ... tl} => stringOfStrokes(label ++ "\n" ++ toString(hd), tl)
   }
-} 
-
-
+}
 
 @react.component
 let make = (~state: Types.state , ~dispatch: Store.action => unit) => {  
   let id = "divider-editor"
 
   if (false) { dispatch(Store.NoOp)} else {()} // placed here to silence warnings about dispatch being unused.
-//==============================================================================================
- 
 
-
-// constants: physical layout/styling
+// constants: physical layout; all measurements in pixels
 let displayWidth = 900; // pixels
 let displayHeight = 900; // pixels
 let margin = 20; // pixels
 let dotRadius = 2.5;
 let lineWidth = 2; 
 let frameLineWidth = 7;
-let randomStrokeColors = true;
+let randomStrokeColors = false;
 
 // constants: colors 
 let bgColor = color(~r=255, ~g=250, ~b=250, ~a=255);
@@ -92,34 +78,10 @@ let dragLineColor = color(~r=205, ~b=0, ~g=0, ~a=255);
 let dotColor = color(~r=0, ~g=0, ~b=0, ~a=255);
 let frameColor = color(~r=200, ~g=200, ~b=0, ~a=55);
 
-// =======================================
-
-//let frameWidth = 65.0; // inch
-//let frameHeight = 85.0; // inch
-//let dotGap = 10.0; // inch
-
-// the amount of space, in inch, needed for the divider PLUS an extra row or col of dots if 
-// needed. 
-// let extendedWidth =  dotGap *. ceil(frameWidth /. dotGap);
-// let extendedHeight = dotGap *. ceil(frameHeight /. dotGap);
-
-
-// let ratio = min(float_of_int(displayWidth-2*margin) /. extendedWidth,
-//                float_of_int(displayHeight-2*margin) /. extendedHeight); // units are pixels/inch
-
-// let dotSpacing = int_of_float(ratio *. dotGap); // units are pixels.
-
-// let wCount = 1 + int_of_float( ceil(frameWidth /. dotGap));
-// let hCount = 1 + int_of_float( ceil(frameHeight /. dotGap));
-
-// let frameHeightPixels = int_of_float(floor(ratio *. frameHeight));
-// let frameWidthPixels = int_of_float(floor(ratio *. frameWidth));
-
 
 let rColor: unit => colorT =
   () => {
     let rb: unit => int = () => random(~min=0, ~max=255);
-
     color(~r=rb(), ~g=rb(), ~b=rb(), ~a=255);
   };
 
@@ -140,13 +102,11 @@ let wToG: (stateT, ppoint) =>  gpoint =
     };
   };
 
-
 let gToW: (stateT, gpoint) => ppoint = (s, g) => 
 {
   (float_of_int(g.xi * s.dg.dotSpacing + margin), float_of_int(displayHeight - (g.yi * s.dg.dotSpacing + margin)));
 }
  
-
 let makeOuterStrokes: (drawingGeometry) => list<stroke> =
   dg => {
     let left = 0;
@@ -158,7 +118,7 @@ let makeOuterStrokes: (drawingGeometry) => list<stroke> =
       {sp: {p1: {xi:left, yi:top}, p2: {xi:left, yi:bot}}, color: rColor()},
       {sp: {p1: {xi:left, yi:bot}, p2: {xi:right, yi:bot}}, color: rColor()},
       {sp: {p1: {xi:right, yi:bot}, p2: {xi:right, yi:top}}, color: rColor()},
-      {sp: {p1: {xi:right, yi:top}, p2: {xi:left, yi:top}}, color: rColor()},
+      {sp: {p1: {xi:left, yi:top}, p2: {xi:right, yi:top}}, color: rColor()},
     };
   }; 
 
@@ -298,32 +258,48 @@ let clean: (list<stroke>, glEnvT) => list<stroke> =
 
       
 let buildGeom = (s:Types.state) =>
-{
-  let frameWidth = s.data.width;
-  let frameHeight = s.data.depth;
-  let dotGap = s.data.spacing;
+{ // running example: an 8" x 7" divider, with 0.5" dot-spacing
+  // which should need 17 x 15 dots (because of the dots at x = 0 and y = 0)
+  // placed on a 900 x 900 grid, with a margin of 20 pixels on all sides. 
+  let frameWidth = s.data.width; // 8.0
+  let frameHeight = s.data.depth; // 7.0
+  let dotGap = s.data.spacing; // 0.5
 
-  let extendedWidth =  dotGap *. ceil(frameWidth /. dotGap);
-  let extendedHeight = dotGap *. ceil(frameHeight /. dotGap);
+  // enough room, in inches, to fit all the dots we need (in case the divider is, say, 8.3 dots
+  // wide, so we really need 9 dots)
+  let extendedWidth =  dotGap *. ceil(frameWidth /. dotGap); //Js.log(extendedWidth);
+  let extendedHeight = dotGap *. ceil(frameHeight /. dotGap); //Js.log(extendedHeight);
   let ratio = min(float_of_int(displayWidth-2*margin) /. extendedWidth,
                 float_of_int(displayHeight-2*margin) /. extendedHeight); // units are pixels/inch
+  // Js.log(ratio);
 
   let dotSpacing = int_of_float(ratio *. dotGap); // units are pixels.
+  //Js.log(dotSpacing);
 
-  let wCount = 1 + int_of_float( ceil(frameWidth /. dotGap));
-  let hCount = 1 + int_of_float( ceil(frameHeight /. dotGap));
+  // the actual pixel-to-inch ratio, after the rounding has taken place. 
+  let rratio = float_of_int(dotSpacing) /. dotGap;
 
-  let frameHeightPixels = int_of_float(floor(ratio *. frameHeight));
-  let frameWidthPixels = int_of_float(floor(ratio *. frameWidth));
+  let wCount = 1 + int_of_float( ceil(frameWidth /. dotGap)); //Js.log(wCount);
+  let hCount = 1 + int_of_float( ceil(frameHeight /. dotGap));//Js.log(hCount);
+
+  let frameHeightPixels = int_of_float(floor(rratio *. frameHeight)); //Js.log(frameHeightPixels)
+  let frameWidthPixels = int_of_float(floor(rratio *. frameWidth)); //Js.log(frameWidthPixels)
   {wCount:wCount, hCount:hCount, dotSpacing:dotSpacing, frameHeightPixels: frameHeightPixels, frameWidthPixels: frameWidthPixels}
 }
+
+let strokeCompare = (s1:stroke, s2:stroke) => compare(s1.sp, s2.sp);
 
 let setup: glEnvT => stateT =
   env => {
     Draw.strokeWeight(lineWidth, env);
-//    Env.size(~width=wPixel, ~height=hPixel, env);
     Env.size(~width=displayWidth, ~height=displayHeight, env);
     let d = buildGeom(state); 
+    let newStrokeList = 
+    List.sort_uniq(strokeCompare, if (state.newStart) {
+      makeOuterStrokes(d)
+    } else {
+      state.drawing
+    })
 
     let q = {
       p: Base,
@@ -331,7 +307,7 @@ let setup: glEnvT => stateT =
       dragStart: {xi:0, yi:0},
       dragNow: {xi:0, yi:0},
       strokeColor: basicStrokeColor,
-      strokeList:  makeOuterStrokes(d),
+      strokeList: newStrokeList  ,
       dots: makeDots(d),
       oldStrokes: list{},
       dg: d,
@@ -491,10 +467,18 @@ let findNearest:(stateT, (int, int), list<stroke>, float) => option<stroke> = (s
   };
 };
 
+// create a stroke whose endpoints are lexicographically ordered
+let rec newStroke:(gpoint, gpoint) => stroke = (p1:gpoint, p2:gpoint) => {
+  if (p1.xi > p2.xi) { newStroke( p2, p1)} else {
+    if (p1.xi == p2.xi && p1.yi > p2.yi) {newStroke( p2, p1)} else {
+      {sp:{p1:p1, p2:p2}, color: (randomStrokeColors)? rColor() : basicStrokeColor}
+    }
+  }
+} 
+
 let updateState = (state, env) => {
   let press = Env.mousePressed(env);
   let release = state.dragging && (!press);
-
   let shift = Env.key(LeftShift, env) || Env.key(RightShift, env);
   let mouse = Env.mousePressed(env);
 
@@ -531,7 +515,8 @@ let updateState = (state, env) => {
   let newStrokeList =
     if (state.p == Dragging && newPhase != Dragging) {
       clean(list{
-        {sp: {p1: state.dragStart, p2: align(state.dragStart, loc)}, color: rColor()},
+//        {sp: {p1: state.dragStart, p2: align(state.dragStart, loc)}, color: rColor()}
+        newStroke(state.dragStart, align(state.dragStart, loc)),
         ...state.strokeList,
       }, env);
     } else {
@@ -548,7 +533,7 @@ let updateState = (state, env) => {
 
   // If the new list is different from the old one, update the mutable record
   // that lets us share that with the rest of the world. 
-  dataCarrier.strokes = if (newStrokeList != state.strokeList) { 
+  dataCarrier.strokes = if (newStrokeList != dataCarrier.strokes) { 
     newStrokeList 
     } else {
       dataCarrier.strokes
@@ -581,9 +566,6 @@ let draw = (state, env) => {
   updateState(state, env)
 }
 
-
-//run(~setup, ~draw, ());
-//==============================================================================================
 
   React.useEffect(() => {
     setScreenId(id)

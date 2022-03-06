@@ -16,7 +16,17 @@ function updateCounter(s, count) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
+        };
+}
+
+function updateStart(s, start) {
+  return {
+          data: s.data,
+          svg: s.svg,
+          drawing: s.drawing,
+          newStart: start
         };
 }
 
@@ -36,10 +46,12 @@ function updateThickness(s, t) {
   };
   var q_svg = s.svg;
   var q_drawing = s.drawing;
+  var q_newStart = s.newStart;
   var q = {
     data: q_data,
     svg: q_svg,
-    drawing: q_drawing
+    drawing: q_drawing,
+    newStart: q_newStart
   };
   console.log(q);
   return q;
@@ -60,7 +72,8 @@ function updateWidth(s, t) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -79,7 +92,8 @@ function updateDepth(s, t) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -98,7 +112,8 @@ function updateHeight(s, t) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -117,7 +132,8 @@ function updateSpacing(s, t) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -136,7 +152,8 @@ function updateIncludeEnclosure(s, t) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -156,7 +173,8 @@ function updateDipPercentageH(s, t) {
             dipPercentageV: init.dipPercentageV
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -176,7 +194,8 @@ function updateDipPercentageV(s, t) {
             dipPercentageV: t
           },
           svg: s.svg,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -184,7 +203,8 @@ function updateSVGContents(s, text) {
   return {
           data: s.data,
           svg: text,
-          drawing: s.drawing
+          drawing: s.drawing,
+          newStart: s.newStart
         };
 }
 
@@ -194,7 +214,8 @@ function updateDrawing(s, d) {
   return {
           data: s.data,
           svg: s.svg,
-          drawing: d
+          drawing: d,
+          newStart: s.newStart
         };
 }
 
@@ -225,6 +246,8 @@ function reducer(state, action) {
         return updateSVGContents(state, action._0);
     case /* ChangeDrawing */10 :
         return updateDrawing(state, action._0);
+    case /* ChangeStart */11 :
+        return updateStart(state, action._0);
     
   }
 }
@@ -242,12 +265,14 @@ var initialState = {
     dipPercentageV: 70.0
   },
   svg: "",
-  drawing: /* [] */0
+  drawing: /* [] */0,
+  newStart: true
 };
 
 export {
   initialState ,
   updateCounter ,
+  updateStart ,
   updateThickness ,
   updateWidth ,
   updateDepth ,

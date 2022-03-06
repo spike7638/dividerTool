@@ -9643,7 +9643,7 @@ schema-utils@^3.0.0:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
-"sdl2@github:bsansouci/SDL-mirror":
+sdl2@bsansouci/SDL-mirror:
   version "2.0.5"
   resolved "https://codeload.github.com/bsansouci/SDL-mirror/tar.gz/45e92456627c099fccd0ca2f1516581bd816c48a"
   dependencies:

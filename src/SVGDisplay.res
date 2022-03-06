@@ -9,7 +9,10 @@
 // SVG Display text area
 
 @react.component
-let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
+let make = (~state: Types.state, ~dispatch: Store.action => unit) => 
+{
+  //dispatch(Store.NoOp);
+  {
   <main>
     <div 
       className="SVGDisplay" 
@@ -17,5 +20,6 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
  
     </div>
   </main> 
+}
 }
  
