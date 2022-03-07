@@ -513,10 +513,6 @@ function drawingToDivider(st, drawing) {
   var d1 = List.map((function (s) {
           return s.sp;
         }), drawing);
-  List.filter(isHorizontal)(d1);
-  List.filter(function (x) {
-          return !isHorizontal(x);
-        })(d1);
   var sp0_height = settings.height;
   var sp0_dipSizeH = settings.height * settings.dipPercentageH / 100.0;
   var sp0_dipSizeV = settings.height * settings.dipPercentageV / 100.0;
@@ -836,8 +832,8 @@ function ps(name, x, y) {
   return Pervasives.print_string(name + (": " + (x.toString() + (", " + (y.toString() + "\n")))));
 }
 
-function boxToPathD(bs, sp, dipSize) {
-  var helper = function (xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) {
+function boxToPathD(bs, _sp, dipSize) {
+  var helper = function (xs, ys, xq, yq, xm, ym, xt, yt) {
     return "M " + (textOfPoint(xs, ys) + ("Q " + (textOfPoint(xq, yq) + ("  " + (textOfPoint(xm, ym) + ("T " + textOfPoint(xt, yt)))))));
   };
   if (bs.isDip) {
@@ -852,7 +848,7 @@ function boxToPathD(bs, sp, dipSize) {
     var yt = ys - dipSize;
     var xf = xs + 2 * q;
     var yf = ys - dipSize;
-    var st1 = helper(xs, ys, xq, ys, xm, ym, xt, yt, xf, yf) + " ";
+    var st1 = helper(xs, ys, xq, ys, xm, ym, xt, yt) + " ";
     var xs2 = bs.lowerLeft[0] + bs.width;
     var ys2 = bs.height;
     var xq2 = xs2 - q;
@@ -863,7 +859,7 @@ function boxToPathD(bs, sp, dipSize) {
     var xf2 = xs2 - 2 * q;
     var yf2 = ys2 - dipSize;
     var st2 = "M " + (textOfPoint(xf, yf) + ("L " + textOfPoint(xf2, yf2)));
-    var st3 = helper(xs2, ys2, xq2, ys2, xm2, ym2, xt2, yt2, xf2, yf2) + " ";
+    var st3 = helper(xs2, ys2, xq2, ys2, xm2, ym2, xt2, yt2) + " ";
     return st1 + (st2 + st3);
   }
   var hs = (72.0 * bs.height).toString();

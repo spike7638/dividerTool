@@ -22,6 +22,9 @@ function tooltipLabel(target, labelText, tooltipText) {
 function Controls(Props) {
   var state = Props.state;
   var dispatch = Props.dispatch;
+  React.useEffect(function () {
+        
+      });
   return React.createElement("main", undefined, React.createElement("div", {
                   className: "Controls"
                 }, React.createElement("header", {
@@ -35,6 +38,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.thickness.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeThickness */1,
                                               _0: Number($$event.target.value)
@@ -49,6 +56,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.width.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeWidth */2,
                                               _0: Caml_format.caml_float_of_string($$event.target.value)
@@ -63,6 +74,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.depth.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeDepth */3,
                                               _0: Caml_format.caml_float_of_string($$event.target.value)
@@ -77,6 +92,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.height.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeHeight */4,
                                               _0: Caml_format.caml_float_of_string($$event.target.value)
@@ -91,6 +110,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.spacing.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeSpacing */6,
                                               _0: Caml_format.caml_float_of_string($$event.target.value)
@@ -100,13 +123,10 @@ function Controls(Props) {
                               id: "restart",
                               onClick: (function (param) {
                                   Curry._1(dispatch, {
-                                        TAG: /* ChangeStart */11,
+                                        TAG: /* ChangeStart */10,
                                         _0: true
                                       });
-                                  return Curry._1(dispatch, {
-                                              TAG: /* ChangeStart */11,
-                                              _0: false
-                                            });
+                                  return Curry._1(dispatch, /* NoOp */0);
                                 })
                             }, "Restart Design"), React.createElement("br", undefined), React.createElement("br", undefined), React.createElement("h3", undefined, "Options "), React.createElement("label", {
                               htmlFor: "dipPercentageV"
@@ -118,6 +138,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.dipPercentageV.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeDipPercentageV */8,
                                               _0: Caml_format.caml_float_of_string($$event.target.value)
@@ -133,6 +157,10 @@ function Controls(Props) {
                               type: "number",
                               value: state.data.dipPercentageH.toString(),
                               onChange: (function ($$event) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* ChangeStart */10,
+                                        _0: false
+                                      });
                                   return Curry._1(dispatch, {
                                               TAG: /* ChangeDipPercentageH */7,
                                               _0: Caml_format.caml_float_of_string($$event.target.value)
@@ -142,8 +170,8 @@ function Controls(Props) {
                               id: "refresh",
                               onClick: (function (param) {
                                   return Curry._1(dispatch, {
-                                              TAG: /* ChangeDrawing */10,
-                                              _0: EditorComponent$DividerEditor.getStrokes(undefined)
+                                              TAG: /* ChangeStart */10,
+                                              _0: false
                                             });
                                 })
                             }, "Refresh SVG"), React.createElement("br", undefined), React.createElement("div", {

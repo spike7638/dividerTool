@@ -61,9 +61,9 @@ let make = (~state: Types.state , ~dispatch: Store.action => unit) => {
   let id = "divider-editor"
 
   if (false) { dispatch(Store.NoOp)} else {()} // placed here to silence warnings about dispatch being unused.
-
-// constants: physical layout; all measurements in pixels
-let displayWidth = 900; // pixels
+  
+  // constants: physical layout; all measurements in pixels
+  let displayWidth = 900; // pixels
 let displayHeight = 900; // pixels
 let margin = 20; // pixels
 let dotRadius = 2.5;
@@ -298,7 +298,7 @@ let setup: glEnvT => stateT =
     List.sort_uniq(strokeCompare, if (state.newStart) {
       makeOuterStrokes(d)
     } else {
-      state.drawing
+      getStrokes();
     })
 
     let q = {
@@ -312,7 +312,9 @@ let setup: glEnvT => stateT =
       oldStrokes: list{},
       dg: d,
     }; 
-    dataCarrier.strokes = q.strokeList;
+//    dataCarrier.strokes = q.strokeList;
+    setStrokes(q.strokeList);
+    //dispatch(Store.ChangeStart(false));
     q
   }; 
 
@@ -533,11 +535,8 @@ let updateState = (state, env) => {
 
   // If the new list is different from the old one, update the mutable record
   // that lets us share that with the rest of the world. 
-  dataCarrier.strokes = if (newStrokeList != dataCarrier.strokes) { 
-    newStrokeList 
-    } else {
-      dataCarrier.strokes
-      };
+  dataCarrier.strokes = newStrokeList;
+    
 
   {
     ...state,
@@ -553,7 +552,8 @@ let updateState = (state, env) => {
     dragStart: newDragStart,
     dragNow: newDragNow,
     oldStrokes: (newStrokeList != state.strokeList)? state.strokeList : state.oldStrokes,
-    strokeList: (newStrokeList != state.strokeList)? {dataCarrier.strokes = newStrokeList; newStrokeList} : state.strokeList,
+    // strokeList: (newStrokeList != state.strokeList)? {dataCarrier.strokes = newStrokeList; newStrokeList} : state.strokeList,
+    strokeList: newStrokeList,
   };
 };
   
@@ -570,6 +570,7 @@ let draw = (state, env) => {
   React.useEffect(() => {
     setScreenId(id)
     run(~setup, ~draw, ())
+ //   dispatch(Store.ChangeStart(false))
     None
   })
   <canvas id />

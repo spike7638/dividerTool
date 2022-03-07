@@ -13,6 +13,11 @@ let tooltipLabel = (target, labelText, tooltipText) =>
 
 @react.component
 let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
+  React.useEffect(() => {
+    //dispatch(Store.ChangeStart(false))
+    None
+  }, );
+
   <main>
     <div className="Controls">
       <header className="Controls-header">
@@ -25,7 +30,8 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             name="thickness"
             value={Js.Float.toString(state.data.thickness)}
             onChange={event => {
-              dispatch(
+              dispatch(Store.ChangeStart(false))
+              dispatch(  
                 Store.ChangeThickness(Js.Float.fromString(ReactEvent.Form.target(event)["value"])),
               )
             }}
@@ -42,6 +48,7 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             name="width"
             value={Js.Float.toString(state.data.width)}
             onChange={event => {
+                dispatch(Store.ChangeStart(false))
               dispatch(Store.ChangeWidth(float_of_string(ReactEvent.Form.target(event)["value"])))
             }}
             step=0.001
@@ -51,12 +58,13 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
           <br />
           {tooltipLabel("drawerDepth", "Drawer depth ", "The overall front-to-back measurement of the divider assembly, typically the depth of the drawer in which it sits, minus perhaps .01 inch")}
           //<label htmlFor="drawerDepth"> {React.string("Drawer depth ")} </label>
-          <input
+          <input 
             type_="number"
             id="drawerDepth"
             name="depth"
             value={Js.Float.toString(state.data.depth)}
             onChange={event => {
+                dispatch(Store.ChangeStart(false))
               dispatch(Store.ChangeDepth(float_of_string(ReactEvent.Form.target(event)["value"])))
             }}
             step=0.001
@@ -72,6 +80,7 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             name="height"
             value={Js.Float.toString(state.data.height)}
             onChange={event => {
+              dispatch(Store.ChangeStart(false))
               dispatch(Store.ChangeHeight(float_of_string(ReactEvent.Form.target(event)["value"])))
             }}
             step=0.001
@@ -89,6 +98,7 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             name="spacing"
             value={Js.Float.toString(state.data.spacing)}
             onChange={event => {
+              dispatch(Store.ChangeStart(false))
               dispatch(Store.ChangeSpacing(float_of_string(ReactEvent.Form.target(event)["value"])))
             }}
             step=0.001
@@ -101,7 +111,7 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             onClick={_ => {
               dispatch(Store.ChangeStart(true));
               //dispatch(Store.ChangeDrawing(list{}))
-              dispatch(Store.ChangeStart(false));
+              dispatch(Store.NoOp);
             }}>
             {React.string("Restart Design")}
           </button>
@@ -119,6 +129,7 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             name="dipPercentageV"
             value={Js.Float.toString(state.data.dipPercentageV)}
             onChange={event => {
+              dispatch(Store.ChangeStart(false))
               dispatch(
                 Store.ChangeDipPercentageV(float_of_string(ReactEvent.Form.target(event)["value"])),
               )
@@ -136,6 +147,7 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
             name="dipPercentageH"
             value={Js.Float.toString(state.data.dipPercentageH)}
             onChange={event => {
+              dispatch(Store.ChangeStart(false))
               dispatch(
                 Store.ChangeDipPercentageH(float_of_string(ReactEvent.Form.target(event)["value"])),
               )
@@ -150,7 +162,8 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) => {
 
           <button id="refresh"
             onClick={_ => {
-              dispatch(Store.ChangeDrawing(EditorComponent.getStrokes()))
+              dispatch(Store.ChangeStart(false))
+//              dispatch(Store.ChangeValue({counter:37}))
             }}>
             {React.string("Refresh SVG")}
           </button>

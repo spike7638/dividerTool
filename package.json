@@ -2,6 +2,7 @@
   "name": "divider-editor",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@rescript/react": "^0.10.1",
     "@testing-library/jest-dom": "^5.11.4",
@@ -10,8 +11,8 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.2",
-    "reprocessing": "github:RawToast/reprocessing#ml",
     "reasongl": "github:RawToast/reasongl#ml",
+    "reprocessing": "github:RawToast/reprocessing#ml",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
@@ -25,7 +26,7 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": [ 
+    "extends": [
       "react-app",
       "react-app/jest"
     ]

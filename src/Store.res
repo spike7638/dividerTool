@@ -5,7 +5,7 @@ open Types
 let initialState: state = {
   data: {counter:100, thickness: 0.198, width: 5.0, depth: 4.0, height: 1.5, 
   includeEnclosure: true, dipPercentageV: 70.0, dipPercentageH: 0.0, spacing: 0.5},
-  svg: "", drawing: list{}, newStart: true
+  svg: "", /*drawing: list{},*/ newStart: true
 }
 
 type action =
@@ -19,7 +19,7 @@ type action =
   | ChangeDipPercentageH(float)
   | ChangeDipPercentageV(float)
   | ChangeSVG(string)
-  | ChangeDrawing(drawing)
+//  | ChangeDrawing(drawing)
   | ChangeStart(bool)
   | NoOp
 
@@ -98,14 +98,14 @@ let updateSVGContents: (state, string) => state = (s:state, text:string) => {
   }
 }
 
-let updateDrawing: (state, drawing) => state = (s:state, d:drawing) => {
-   Js.log("updateDrawing, pre-change state = ");
-   Js.log(s);
-  {
-    ...s,
-    drawing: d,
-  }
-}
+// let updateDrawing: (state, drawing) => state = (s:state, d:drawing) => {
+//    Js.log("updateDrawing, pre-change state = ");
+//    Js.log(s);
+//   {
+//     ...s,
+//     drawing: d,
+//   }
+// }
 
 
 let reducer = (state: state, action: action) => {
@@ -120,7 +120,7 @@ let reducer = (state: state, action: action) => {
   | ChangeDipPercentageH(t) => updateDipPercentageH(state, t)
   | ChangeDipPercentageV(t) => updateDipPercentageV(state, t)
   | ChangeSVG(t) => updateSVGContents(state, t)
-  | ChangeDrawing(t) => updateDrawing(state, t)
+//  | ChangeDrawing(t) => updateDrawing(state, t)
   | ChangeStart(t) => updateStart(state, t)
   | NoOp => state
   }

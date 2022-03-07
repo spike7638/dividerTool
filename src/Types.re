@@ -77,6 +77,6 @@ type settings = {
 type state = {
   data: settings,
   svg: string,
-  drawing: list(stroke),
+  //drawing: list(stroke),
   newStart: bool,
 }

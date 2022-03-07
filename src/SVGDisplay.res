@@ -11,6 +11,10 @@
 @react.component
 let make = (~state: Types.state, ~dispatch: Store.action => unit) => 
 {
+  React.useEffect(() => {
+    let i = 17;
+    None
+  })
   //dispatch(Store.NoOp);
   {
   <main>
@@ -19,6 +23,9 @@ let make = (~state: Types.state, ~dispatch: Store.action => unit) =>
       dangerouslySetInnerHTML={"__html": DrawingToSVG.dividerToSVG(DrawingToSVG.drawingToDivider(state, EditorComponent.getStrokes()))}>
  
     </div>
+    <p>
+    {React.string(string_of_bool(state.newStart))}
+    </p>
   </main> 
 }
 }

@@ -316,7 +316,7 @@ function EditorComponent(Props) {
     Reprocessing_Draw.strokeWeight(2, env);
     Reprocessing_Env.size(900, 900, env);
     var d = buildGeom(state);
-    var newStrokeList = List.sort_uniq(strokeCompare, state.newStart ? makeOuterStrokes(d) : state.drawing);
+    var newStrokeList = List.sort_uniq(strokeCompare, state.newStart ? makeOuterStrokes(d) : dataCarrier.strokes);
     var q_dragStart = {
       xi: 0,
       yi: 0
@@ -483,7 +483,7 @@ function EditorComponent(Props) {
             RE_EXN_ID: "Match_failure",
             _1: [
               "EditorComponent.res",
-              453,
+              455,
               12
             ],
             Error: new Error()
@@ -637,7 +637,7 @@ function EditorComponent(Props) {
     } else {
       newStrokeList = state.strokeList;
     }
-    dataCarrier.strokes = Caml_obj.caml_notequal(newStrokeList, dataCarrier.strokes) ? newStrokeList : dataCarrier.strokes;
+    dataCarrier.strokes = newStrokeList;
     return {
             p: newPhase,
             dragging: press ? true : (
@@ -646,7 +646,7 @@ function EditorComponent(Props) {
             dragStart: newDragStart,
             dragNow: newDragNow,
             strokeColor: state.strokeColor,
-            strokeList: Caml_obj.caml_notequal(newStrokeList, state.strokeList) ? (dataCarrier.strokes = newStrokeList, newStrokeList) : state.strokeList,
+            strokeList: newStrokeList,
             dots: state.dots,
             oldStrokes: Caml_obj.caml_notequal(newStrokeList, state.strokeList) ? state.strokeList : state.oldStrokes,
             dg: state.dg

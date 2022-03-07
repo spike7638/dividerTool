@@ -422,12 +422,11 @@ s1 ++ s2 ++ s3 ++ s4 ++ s5 ++ "\n"
 
 let drawingToDivider: (Types.state, drawing) => divider = (st, drawing) => {
   let settings = st.data;
-  let t = settings.thickness;
+ 
   // convert drawing to list of spans
   let d1 = spanList_of_strokeList(drawing);
   // split spans into horizontal and vertical
-  let dH = List.filter(isHorizontal, d1);
-  let dV = List.filter(x => !isHorizontal(x), d1);
+
   // build "specs" structure
   let sp0:specs = {height: settings.height,
      dipSizeH: settings.height *. settings.dipPercentageH /. 100.0,
@@ -608,8 +607,6 @@ let stringOfBox: boxSpec => string =
  */
 let dipGap: (float, float, float, float) => list(boxSpec) =
   (x, f, height, dipSize) => {
-    let xs = x +. dipSize;
-    let xf = x +. f -. dipSize;
     let xs = x +. 0.25;
     let xf = x +. f -. 0.25;
     let w = xf -. xs;
@@ -660,8 +657,8 @@ let ps = (name, x, y) =>
 
 let boxToPathD: (boxSpec, specs, float) => string =
 {
-  (bs, sp, dipSize) => {
-    let helper = (xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) => {
+  (bs, _sp, dipSize) => {
+    let helper = (xs, ys, xq, yq, xm, ym, xt, yt) => {
       "M "
       ++ textOfPoint(xs, ys)
       ++ "Q "
@@ -682,7 +679,7 @@ let boxToPathD: (boxSpec, specs, float) => string =
       let (xm, ym) = (xs +. q, ys -. d /. 2.0);
       let (xt, yt) = (xs +. 2. *. q, ys -. d);
       let (xf, yf) = (xs +. 2. *. q, ys -. d);
-      let st1 = helper(xs, ys, xq, yq, xm, ym, xt, yt, xf, yf) ++ " ";
+      let st1 = helper(xs, ys, xq, yq, xm, ym, xt, yt) ++ " ";
 
       let (xs2, ys2) = (fst(bs.lowerLeft) +. bs.width, bs.height);
       let (xq2, yq2) = (xs2 -. q, ys2);
@@ -692,7 +689,7 @@ let boxToPathD: (boxSpec, specs, float) => string =
 
       let st2 = "M " ++ textOfPoint(xf, yf) ++ "L " ++ textOfPoint(xf2, yf2);
       let st3 =
-        helper(xs2, ys2, xq2, yq2, xm2, ym2, xt2, yt2, xf2, yf2) ++ " ";
+        helper(xs2, ys2, xq2, yq2, xm2, ym2, xt2, yt2) ++ " ";
  
       st1 ++  st2 ++ st3;
       // <path d="M200,300 Q375,300 400,400 T600,500 M 600,500 L 800,500"
