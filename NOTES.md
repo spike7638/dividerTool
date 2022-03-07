@@ -33,9 +33,7 @@ x* ?Turn off "outer box" for initial testing
 .* delete everything and try rebuilding from scratch
 .* write a comparator for span-sorting that doesn't care about colors, so that we can use randomColors if we want and not break anything.
 
-
-* why does RefreshSVG cause the outline to re-appear?
-  * it'd be nice to trigger an update to the svg stuff at the very start. 
+Works, except that I'd like for the "RefreshSVG" to not be necessary, and for the SVG visualization at the start to show the initial editor state. 
 
 * Clean up all code to remove leftover cruft 
 * try moving the "bundle" to cs.brown.edu to see whether that can work
