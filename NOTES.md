@@ -32,11 +32,19 @@ x* ?Turn off "outer box" for initial testing
 .* Print current lists of features to the js log
 .* delete everything and try rebuilding from scratch
 .* write a comparator for span-sorting that doesn't care about colors, so that we can use randomColors if we want and not break anything.
+.* try moving the "bundle" to cs.brown.edu to see whether that can work
+.*Fix code so that both width and depth of drawer get truncated by 1 material-thickness
 
-Works, except that I'd like for the "RefreshSVG" to not be necessary, and for the SVG visualization at the start to show the initial editor state. 
-
+* Prevent drawing lines past bottom or left of grid (top and right work, I think)
+* Draw a partial line left-to-right; then try to continue it -- it fails
+* Mark areas where you want dips? Make dips on outer edges optional? 
 * Clean up all code to remove leftover cruft 
-* try moving the "bundle" to cs.brown.edu to see whether that can work
-
-? document what's going on, etc. 
+* document what's going on, etc. 
 * Figure out how to clean up the build process so that it all works properly. Switch everything to rescript? 
+* Improve aesthetics of CSS
+* Fix "overdrawing" of cut lines
+* Really do draw both red (in width .072 pt) and blue (in width .72 pt); include diagram of setup for laser-cutter
+
+Works, except that I'd like for the "RefreshSVG" to not be necessary, and for the SVG visualization at the start to show the initial editor state. Maybe something like UseEffect0, which does something only on first creation of the Element? 
+
+* Make an instruction page, and refer to it with something parallel to <p>Check out <a href="https://www.freecodecamp.org/" target="_blank" rel="noopener noreferrer">Overview and instructions</a>.</p>

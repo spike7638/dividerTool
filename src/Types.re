@@ -1,14 +1,20 @@
 open Reprocessing;
 // types
-// "world-space point", i.e., pixel coordinates in GL. 
+// "world-space point", i.e., pixel coordinates in GL.
 type ppoint = (float, float); //"Pixel point"
 
 // "grid-space point", i.e., coordinates in the "dot grid", the preferred coord system
-// Note that location (0,0), as a gpoint, is in the lower left of the drawing, 
+// Note that location (0,0), as a gpoint, is in the lower left of the drawing,
 // while (0., 0.), as a wpoint, is in the upper left, because OGL has y increase DOWNwards. Sigh.
-type gpoint = {xi:int, yi:int};
+type gpoint = {
+  xi: int,
+  yi: int,
+};
 
-type span = {p1:gpoint, p2:gpoint};
+type span = {
+  p1: gpoint,
+  p2: gpoint,
+};
 
 type stroke = {
   sp: span,
@@ -19,7 +25,7 @@ type drawing = list(stroke);
 
 // =========================
 // special mutable structure to preserve the stroke-list for use by other parts of the code
-type ss = {mutable strokes:list(stroke)};
+type ss = {mutable strokes: list(stroke)};
 
 type feature =
   | CU(float) /* U and L and upper and lower features of a finger-joint; the upper piece on the CU side is long */
@@ -31,13 +37,14 @@ type feature =
   | G(float) /* a gap between panels */
   | D(float); /* an area that dips down by an amount specs.dipSize */
 
+// Specification of all aspects of the divider assembly
 type specs = {
   height: float,
   dipSizeH: float,
   dipSizeV: float,
-  t: float,
+  t: float, // material thickness
   pinCount: int, /* for one pin, divide height into 3 parts; for 3 tabs, divide into 5 */
-  tabFraction: float /*  between 0 and 1 */
+  tabFraction: float /*  between 0 and 1: what fraction of the vertical space should be taken up by tabs */
 };
 
 type point = (float, float); // point for SVG stuff
@@ -48,12 +55,12 @@ type boxSpec = {
   isDip: bool /* disgusting hack; really should have "boxes" and "dips" and possibly "lineSegment"s too*/
 };
 
-type panelGeom = list(feature); 
+type panelGeom = list(feature);
 
 type panel = {
   isHorizontal: bool,
   geom: panelGeom,
-  name: string, 
+  name: string,
 }; /* horiz panels never contains CUs or XUs; vert panels never contain CLs or XLs */
 
 type divider = {
@@ -72,11 +79,11 @@ type settings = {
   includeEnclosure: bool,
   dipPercentageH: float,
   dipPercentageV: float,
- }
+};
 
 type state = {
   data: settings,
   svg: string,
   //drawing: list(stroke),
   newStart: bool,
-}
+};
