@@ -3,6 +3,7 @@ let make = () => {
   let (state, dispatch) = React.useReducer(Store.reducer, Store.initialState)
   {
     <div>
+      
       <Controls state dispatch />
       <hr />
       <pre>
